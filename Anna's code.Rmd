@@ -1,0 +1,13 @@
+---
+title: "Anna's code"
+output: html_document
+date: "2024-05-07"
+---
+
+```{r}
+funk<-function(x){
+  result<-1+x
+  return(result)
+}
+```
+
