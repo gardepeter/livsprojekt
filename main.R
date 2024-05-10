@@ -10,10 +10,6 @@ library(dplyr)
 #source("logic/helperFunctions.R")
 #Rcpp::sourceCpp("logic/cpp/helperFunctions.cpp")
 
-#printHelloWorld()
-#fibonacci(10)
-#prodOfOnes(10)
-
 #Plot of probabilities
 probabilities <- read_csv("probabilities.csv")
 probabilities$age_in_month<-c(1:600)
