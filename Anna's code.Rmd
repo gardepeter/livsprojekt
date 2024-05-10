@@ -3,11 +3,18 @@ title: "Anna's code"
 output: html_document
 date: "2024-05-07"
 ---
-
+Library
 ```{r}
-funk<-function(x){
-  result<-1+x
-  return(result)
-}
+options(scipen = 99)
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("logic/cpp/RungaKutta/RK4Markov.cpp")
+```
+
+Plots. Diskritiser til månedsniveau
+```{r}
+start = 0
+termination = 47
+RK4(start, termination, (termination - start) * 12)
 ```
 
