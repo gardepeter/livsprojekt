@@ -13,6 +13,7 @@ double intensityOutOfState(int j, double s, double d){
   
   return sum;
 }
+
 //TODO
 double trapezoidalEstimation(arma::cube& probabilities, int i, int j, double s, double d){
   return 0.;
@@ -39,9 +40,12 @@ void RK1Step(arma::cube& probabilities, double t, double stepLength, int states)
   
 }
 
-//TODO
-void saveCubeAndMakeHeaders(arma::cube& probabilities, int states){
-  
+void saveCube(arma::cube& probabilities, int states){
+  for(int i = 0; i < states; i++){
+    for(int j = 0; j < states; j++){
+      probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
+    }
+  }
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -59,5 +63,5 @@ void RK1(int startTime, int endTime, int stepAmount) {
     RK1Step(probabilities, startTime + n * stepLength, stepLength, states);
   }
   
-  saveCubeAndMakeHeaders(probabilities, states);
+  saveCube(probabilities, states);
 }
