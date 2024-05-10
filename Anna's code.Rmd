@@ -25,7 +25,6 @@ View(probabilities)
 Plots. Diskritiser til månedsniveau
 Indvalide
 ```{r}
-
 p_00<-ggplot(data=probabilities,mapping=aes(x=månedsalder,y=p_00))+
   geom_line()
 
