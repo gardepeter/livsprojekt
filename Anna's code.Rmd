@@ -18,3 +18,4 @@ termination = 47
 RK4(start, termination, (termination - start) * 12)
 ```
 
+0-50 år
