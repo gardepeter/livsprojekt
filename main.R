@@ -28,6 +28,7 @@ probabilitis_1_long<-pivot_longer(probabilities,c(p_10,p_11,p_12),
 grid.arrange(
   ggplot(probabilitis_0_long, aes(x = age_in_month, y = probabilities, color = transitions)) +
   geom_line()+
+    labs(title="From active state")+
     ylab(bquote(p[ij]))+
     theme(legend.position="bottom",
           legend.title=element_blank()),
@@ -40,6 +41,5 @@ grid.arrange(
     scale_fill_discrete(name = "transitions", labels = c("A", "B", "C")),
   nrow=1
 )
-?theme()
 
 
