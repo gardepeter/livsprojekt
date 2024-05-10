@@ -4,6 +4,8 @@ library(ggplot2)
 library(readr)
 library(tidyverse)
 library(gridExtra)
+library(tikzDevice)
+library(dplyr)
 
 #source("logic/helperFunctions.R")
 #Rcpp::sourceCpp("logic/cpp/helperFunctions.cpp")
@@ -12,7 +14,7 @@ library(gridExtra)
 #fibonacci(10)
 #prodOfOnes(10)
 
-#Plot af sandsynligheder
+#Plot of probabilities
 probabilities <- read_csv("probabilities.csv")
 probabilities$age_in_month<-c(1:600)
 
@@ -28,12 +30,20 @@ probabilitis_1_long<-pivot_longer(probabilities,c(p_10,p_11,p_12),
                                   values_to="probabilities")
 
 grid.arrange(
-  ggplot(probabilitis_0_long, aes(x = månedsalder, y = probabilities, color = transitions)) +
+  ggplot(probabilitis_0_long, aes(x = age_in_month, y = probabilities, color = transitions)) +
   geom_line()+
-    labs(title="From active state"),
-  ggplot(probabilitis_1_long, aes(x = månedsalder, y = probabilities, color = transitions)) +
+    ylab(bquote(p[ij]))+
+    theme(legend.position="bottom",
+          legend.title=element_blank()),
+  ggplot(probabilitis_1_long, aes(x = age_in_month, y = probabilities, color = transitions)) +
     geom_line()+
-    labs(title="From disabled state"),nrow=1
+    labs(title="From disabled state")+
+    theme(axis.title.y=element_blank(),
+          legend.position="bottom",
+          legend.title=element_blank())+
+    scale_fill_discrete(name = "transitions", labels = c("A", "B", "C")),
+  nrow=1
 )
+?theme()
 
 
