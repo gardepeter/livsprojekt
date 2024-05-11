@@ -1,5 +1,5 @@
 #include "RcppArmadillo.h"
-#include "SemiMarkovIntensities.h"
+#include "SemiMarkovIntensities.hpp"
 double stepSize=1/12; //midlertidigt for at se ting virker
 double u=12; 
 
@@ -65,7 +65,7 @@ double transformationKolmogorov(arma::cube& probabilities, int t0, int i, int j,
 }
 
 //TODO
-void RK1Step(arma::cube& probabilities, int t0, double t, double stepLength, int states){
+void RK1Step(arma::cube& probabilities, int t0, int startDuration, double t, double stepLength, int states){
   
 }
 
@@ -79,18 +79,20 @@ void saveCube(arma::cube& probabilities, int states){
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-void RK1(int startTime, int endTime, int stepAmount) {
+void RK1(int startTime, int startDuration, int endTime, int stepAmount) {
   if(endTime <= startTime || stepAmount <= 1){
     return;
   }
   
   double stepLength = 1. / (double)stepAmount;
   
-  arma::cube probabilities;
+  int durationStepAmount = stepAmount + ceil(stepAmount / startDuration); //TODO, maybe not the correct amount of steps in duration axis.
+  arma::cube probabilities(stepAmount, durationStepAmount, states * states);
   
   for(int n = 1; n < stepAmount; n++){
-    RK1Step(probabilities, startTime, startTime + n * stepLength, stepLength, states);
+    RK1Step(probabilities, startTime, startDuration, startTime + n * stepLength, stepLength, states);
   }
   
   saveCube(probabilities, states);
 }
+

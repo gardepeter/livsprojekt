@@ -1,5 +1,5 @@
 #include "RcppArmadillo.h"
-#include "MarkovIntensities.h"
+#include "MarkovIntensities.hpp"
 
 double intensityOutOfState(int j, double s){
   double sum = 0;
