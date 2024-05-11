@@ -1,5 +1,6 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.h"
+double stepSize=1/12; //midlertidigt for at se ting virker
 
 double intensityOutOfState(int j, double s, double d){
   double sum = 0;
@@ -25,9 +26,36 @@ double leftIntegral(arma::cube& probabilities, int i, int j, double s, double d)
 }
 
 //TODO
+/*
 double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, double d){
   return 0.;
 }
+*/
+//TODO (need to choose right probs though) (for right integral (needed l)) if this doesn't work i cry
+double trapezoidalRightEstimation(arma::cube& probabilities, int i, int j, int l, double s, double d){
+  double trapezoidalSum=0;
+  for(int n=1; n< floor(d/stepSize); n++){
+    //posiable problems: n=0 and we get a problem with (n-1) part. so look changed to start from 1
+    //trapezoidalSum += (1/2)*(probabilities.slice(states * i + l)[,]+probabilities.slice(states * i + l)[,])
+    //*(mu(l,j,s,n*stepSize)-mu(l,j,s,stepSize*(n-1)));
+  }
+  return 0.;
+  //return trapezoidalSum
+}
+
+//TODO EASY!!!
+double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, double d){
+  double rightSumResult=0;
+  for(int l=0; l<states; l++){
+    if(l !=j){
+      rightSumResult += trapezoidalRightEstimation(probabilities, i,j,l,s,d);
+    }
+  }
+  return 0.;
+}
+
+
+
 
 //TODO
 double transformationKolmogorov(arma::cube& probabilities, int i, int j, double s, double d){
