@@ -2,6 +2,7 @@
 #include "SemiMarkovIntensities.hpp"
 double stepSize=1/12; //midlertidigt for at se ting virker
 
+
 double intensityOutOfState(int j, double s, double d){
   double sum = 0;
   
@@ -36,7 +37,7 @@ double trapezoidalRightEstimation(arma::cube& probabilities, int t0, int i, int 
   double trapezoidalSum=0;
   for(int n=1; n< floor(d/stepSize); n++){
     //posiable problems: n=0 and we get a problem with (n-1) part. so look changed to start from 1
-    //trapezoidalSum += (1/2)*(probabilities.slice(states * i + l)[,]+probabilities.slice(states * i + l)[,])
+    //trapezoidalSum += (1/2)*(probabilities.slice(states * i + l)[,std::round((s-t_0)/stepSize)-1]+probabilities.slice(states * i + l)[,std::round((s-t_0)/stepSize)-1])
     //*(mu(l,j,s,n*stepSize)-mu(l,j,s,stepSize*(n-1)));
   }
   return 0.;
