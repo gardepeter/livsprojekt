@@ -1,3 +1,6 @@
+#ifndef SemiMarkovIntensities
+#define SemiMarkovIntensities
+
 const int states = 3;
 
 double mu01(double x, double d) {
@@ -36,5 +39,4 @@ double mu(int i, int j, double x, double d){
   return 0.;
 }
 
-
-
+#endif

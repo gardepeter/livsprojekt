@@ -1,3 +1,6 @@
+#ifndef MarkovIntensities
+#define MarkovIntensities
+
 const int states = 3;
 
 double mu01(double x) {
@@ -36,5 +39,4 @@ double mu(int i, int j, double x){
   return 0.;
 }
 
-
-
+#endif
