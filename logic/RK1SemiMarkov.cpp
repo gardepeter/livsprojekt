@@ -1,7 +1,7 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.h"
 double stepSize=1/12; //midlertidigt for at se ting virker
-
+double u=12; 
 
 double intensityOutOfState(int j, double s, double d){
   double sum = 0;
