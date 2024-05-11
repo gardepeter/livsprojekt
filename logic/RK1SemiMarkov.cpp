@@ -1,5 +1,5 @@
 #include "RcppArmadillo.h"
-#include "SemiMarkovIntensities.h"
+#include "SemiMarkovIntensities.hpp"
 double stepSize=1/12; //midlertidigt for at se ting virker
 
 double intensityOutOfState(int j, double s, double d){
@@ -21,7 +21,7 @@ double trapezoidalEstimation(arma::cube& probabilities, int i, int j, double s, 
 }
 
 //TODO
-double leftIntegral(arma::cube& probabilities, int i, int j, double s, double d){
+double leftIntegral(arma::cube& probabilities, int t0, int i, int j, double s, double d){
   return 0.;
 }
 
@@ -32,7 +32,7 @@ double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, do
 }
 */
 //TODO (need to choose right probs though) (for right integral (needed l)) if this doesn't work i cry
-double trapezoidalRightEstimation(arma::cube& probabilities, int i, int j, int l, double s, double d){
+double trapezoidalRightEstimation(arma::cube& probabilities, int t0, int i, int j, int l, double s, double d){
   double trapezoidalSum=0;
   for(int n=1; n< floor(d/stepSize); n++){
     //posiable problems: n=0 and we get a problem with (n-1) part. so look changed to start from 1
@@ -44,11 +44,11 @@ double trapezoidalRightEstimation(arma::cube& probabilities, int i, int j, int l
 }
 
 //TODO EASY!!!
-double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, double d){
+double rightSumOfIntegrals(arma::cube& probabilities, int t0, int i, int j, double s, double d){
   double rightSumResult=0;
   for(int l=0; l<states; l++){
     if(l !=j){
-      rightSumResult += trapezoidalRightEstimation(probabilities, i,j,l,s,d);
+      rightSumResult += trapezoidalRightEstimation(probabilities, t0, i,j,l,s,d);
     }
   }
   return 0.;
@@ -58,13 +58,13 @@ double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, do
 
 
 //TODO
-double transformationKolmogorov(arma::cube& probabilities, int i, int j, double s, double d){
-  return - leftIntegral(probabilities, i, j, s, d)
-          + rightSumOfIntegrals(probabilities, i, j, s, d);
+double transformationKolmogorov(arma::cube& probabilities, int t0, int i, int j, double s, double d){
+  return - leftIntegral(probabilities, t0, i, j, s, d)
+          + rightSumOfIntegrals(probabilities, t0, i, j, s, d);
 }
 
 //TODO
-void RK1Step(arma::cube& probabilities, double t, double stepLength, int states){
+void RK1Step(arma::cube& probabilities, int t0, double t, double stepLength, int states){
   
 }
 
@@ -88,7 +88,7 @@ void RK1(int startTime, int endTime, int stepAmount) {
   arma::cube probabilities;
   
   for(int n = 1; n < stepAmount; n++){
-    RK1Step(probabilities, startTime + n * stepLength, stepLength, states);
+    RK1Step(probabilities, startTime, startTime + n * stepLength, stepLength, states);
   }
   
   saveCube(probabilities, states);
