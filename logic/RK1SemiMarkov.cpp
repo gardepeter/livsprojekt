@@ -39,26 +39,27 @@ double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u
 }
 
 double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i, int j, double s, double stepLength){
-  double rightSumResult=0;
-  for(int l=0; l<states; l++){
-    if(l !=j){
-      rightSumResult += trapezoidalRightEstimation(probabilities, t0, u, i,j,l,s, stepLength);
+  double rightSumResult = 0;
+  for(int l = 0; l < states; l++){
+    if(l == j){
+      continue;
     }
+    rightSumResult += trapezoidalRightEstimation(probabilities, t0, u, i, j, l, s, stepLength);
   }
-  return 0.;
+  return rightSumResult;
 }
 
 double transformationKolmogorov(arma::cube& probabilities, double t0, double u, int i, int j, double s, double d, double stepLength){
   return - leftIntegral(probabilities, t0, i, j, s, d, stepLength)
-          + rightSumOfIntegrals(probabilities, t0,u , i, j, s, stepLength);
+          + rightSumOfIntegrals(probabilities, t0, u , i, j, s, stepLength);
 }
 
 void RK1Step(arma::cube& probabilities, double startTime, double startDuration, int iteration, double stepLength, int states){
   for(int i = 0; i < states; i++){
     for(int j = 0; j < states; j++){
       for(unsigned int d = 0; d * stepLength < startDuration + iteration * stepLength; d++){
-        probabilities(d, iteration, states * i + j) = probabilities(d, iteration - 1, states * i + j)
-          + stepLength * transformationKolmogorov(probabilities, startTime, startDuration, i, j, startTime + stepLength * iteration, startDuration + stepLength * iteration, stepLength);
+        probabilities(d, iteration, states * i + j) = /*probabilities(d, iteration - 1, states * i + j)
+          + stepLength */ transformationKolmogorov(probabilities, startTime, startDuration, i, j, startTime + stepLength * iteration, startDuration + stepLength * iteration, stepLength);
       }
     }
   }
@@ -78,16 +79,16 @@ bool isNotMultipla(double x, double y){
 
 
 //For debugging uses
-// void saveCube(arma::cube& probabilities, int states){
-//   probabilities.slice(0).save("p00.csv", arma::csv_ascii);
-// }
 void saveCube(arma::cube& probabilities, int states){
-  for(int i = 0; i < states; i++){
-    for(int j = 0; j < states; j++){
-      probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
-    }
-  }
+  probabilities.slice(0).save("p00.csv", arma::csv_ascii);
 }
+// void saveCube(arma::cube& probabilities, int states){
+//   for(int i = 0; i < states; i++){
+//     for(int j = 0; j < states; j++){
+//       probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
+//     }
+//   }
+// }
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
@@ -104,11 +105,11 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmount) 
   
   boundaryCondition(probabilities, startDuration, stepLength);
   
-  for(int iteration = 1; iteration < stepAmount; iteration++){
+  for(int iteration = 1; iteration < 2; iteration++){
     RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states);
   }
   
-  // saveCube(probabilities, states);
+  saveCube(probabilities, states);
   return 0;
 }
 
