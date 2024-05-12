@@ -24,8 +24,18 @@ double trapezoidalEstimation(arma::cube& probabilities, int i, int j, double s, 
 }
 
 //TODO
-double leftIntegral(arma::cube& probabilities, int t0, int i, int j, double s, double d){
-  return 0.;
+// d=x*h
+double leftIntegral(arma::cube& probabilities, double t0, int i, int j, double s, double d){ 
+  double trapezoidalSum=0;
+  for(int n=1; n< round(d/stepSize); n++){ // this is for the y-coordinate of the probability matrix
+    // s=t0+xh 
+    trapezoidalSum += (1/2)*(probabilities(round((s-t0)/stepSize),n,states * i + j)+probabilities(round((s-t0)/stepSize),n-1,states * i + j))
+    *(intensityOutOfState(j,s,n*stepSize)+intensityOutOfState(j,s,stepSize*(n-1)));
+  }
+  //return 0.;
+  return trapezoidalSum;
+  
+  //return 0.;
 }
 
 //TODO
@@ -36,7 +46,7 @@ double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, do
 */
 //TODO // the variable d is not in use and could be removed 
 // the function should work as long as u=x*h and i have not checked if it works if not 
-double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u, int i, int j, int l, double s){
+double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u, int i, int j, int l, double s){ // code is written in A(x,y,z) form
   double trapezoidalSum=0;
   for(int n=1; n< round((u+s-t0)/stepSize); n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
