@@ -48,11 +48,11 @@ double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u
 }
 
 //TODO EASY!!!
-double rightSumOfIntegrals(arma::cube& probabilities, int t0, int u, int i, int j, double s){
+double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i, int j, double s){
   double rightSumResult=0;
   for(int l=0; l<states; l++){
     if(l !=j){
-      rightSumResult += trapezoidalRightEstimation(probabilities, t0, u, i,j,l,s,d);
+      rightSumResult += trapezoidalRightEstimation(probabilities, t0, u, i,j,l,s);
     }
   }
   return 0.;
@@ -62,9 +62,11 @@ double rightSumOfIntegrals(arma::cube& probabilities, int t0, int u, int i, int 
 
 
 //TODO
-double transformationKolmogorov(arma::cube& probabilities, int t0, int u, int i, int j, double s, double d){
+
+double transformationKolmogorov(arma::cube& probabilities, double t0, double u, int i, int j, double s, double d){
   return - leftIntegral(probabilities, t0, i, j, s, d)
-          + rightSumOfIntegrals(probabilities, t0, u, i, j, s, d);
+          + rightSumOfIntegrals(probabilities, t0,u , i, j, s);
+
 }
 
 //TODO
