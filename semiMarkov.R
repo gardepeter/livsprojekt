@@ -8,4 +8,8 @@ startDuration = 12 / stepAmount
 
 RK1(startTime, startDuration, endTime, stepAmount)
 
-temp = readr::read_csv("p00.csv", col_names = F)
+temp00 = readr::read_csv("p00.csv", col_names = F)
+temp01 = readr::read_csv("p01.csv", col_names = F)
+temp02 = readr::read_csv("p02.csv", col_names = F)
+
+temp00+temp01+temp02

@@ -4,19 +4,19 @@
 const int states = 3;
 
 double mu01(double x, double d) {
-  return 0.1 * x + 0.5;
+  return 0.1 * x + 0.5 - std::min(d * 0.015, 0.3);
 }
 
 double mu02(double x, double d) {
-  return 0.05 * x + 0.5;
+  return 0.05 * x + 0.5 - std::min(d * 0.05, 0.3);
 }
 
 double mu10(double x, double d) {
-  return 0.15 * x + 1;
+  return 0.15 * x + 1 - std::min(d * 0.1, 0.3);
 }
 
 double mu12(double x, double d) {
-  return 0.75 * x + 1;
+  return 0.75 * x + 1 + d * 0.1;
 }
 
 
