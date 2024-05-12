@@ -1,9 +1,5 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.hpp"
-double stepSize=1/12; //midlertidigt for at se ting virker
-const double EPSILON = 0.0001;
-const double MAX_ITERATION = 10000;
-
 
 double intensityOutOfState(int j, double s, double d){
   double sum = 0;
@@ -74,27 +70,15 @@ void RK1Step(arma::cube& probabilities, int t0, int startDuration, double t, dou
   
 }
 
-void firstIteration(arma::cube& probabilities, double startDuration, double stepLength, int nrow){
+void boundaryCondition(arma::cube& probabilities, double startDuration, double stepLength, int nrow){
   for(int dim = 0; dim < states; dim++){
     for(int d = 0; d < nrow; d++){
       if(d * stepLength > startDuration){
         break;
       }
-      probabilities(0, d, dim) = 1.;
+      probabilities(0, d, (states + 1) * dim) = 1.;
     }
   }
-}
-
-int calcultateStepAmounts(double startDuration, int stepAmount){
-  double optimalLength = 1. / (double)stepAmount;
-  int n = 0;
-  
-  while(fmod(startDuration, optimalLength) >= EPSILON && n < MAX_ITERATION){
-    optimalLength = 1. / (double)(stepAmount + n);
-    n++;
-  }
-  
-  return stepAmount + n;
 }
 
 void saveCube(arma::cube& probabilities, int states){
@@ -108,24 +92,23 @@ void saveCube(arma::cube& probabilities, int states){
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 int RK1(double startTime, double startDuration, double endTime, int stepAmount) {
-  if(endTime <= startTime || stepAmount <= 1){
+  if(endTime <= startTime || stepAmount <= 1 || fmod(startDuration, 1/stepAmount) != 0){
     return -1;
   }
   
-  int optimalStepAmount = calcultateStepAmounts(startDuration, stepAmount);
-  double stepLength = 1. / (double)optimalStepAmount;
+  double stepLength = 1. / (double)stepAmount;
   
-  int nrow = ceil(startDuration * stepLength) + optimalStepAmount;
-  int ncol = optimalStepAmount;
+  int nrow = ceil(startDuration * stepLength) + stepAmount;
+  int ncol = stepAmount;
   arma::cube probabilities(ncol, nrow, states * states);
   
-  firstIteration(probabilities, startDuration, stepLength, nrow);
+  boundaryCondition(probabilities, startDuration, stepLength, nrow);
   
   for(int n = 1; n < stepAmount; n++){
     RK1Step(probabilities, startTime, startDuration, startTime + n * stepLength, stepLength, states);
   }
   
   saveCube(probabilities, states);
-  return optimalStepAmount;
+  return stepAmount;
 }
 
