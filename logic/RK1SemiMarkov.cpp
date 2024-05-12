@@ -34,7 +34,7 @@ double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, do
 */
 //TODO // the variable d is not in use and could be removed 
 // the function should work as long as u=x*h and i have not checked if it works if not 
-double trapezoidalRightEstimation(arma::cube& probabilities, int t0, int u, int i, int j, int l, double s, double d){
+double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u, int i, int j, int l, double s){
   double trapezoidalSum=0;
   for(int n=1; n< round((u+s-t0)/stepSize); n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
@@ -46,7 +46,7 @@ double trapezoidalRightEstimation(arma::cube& probabilities, int t0, int u, int 
 }
 
 //TODO EASY!!!
-double rightSumOfIntegrals(arma::cube& probabilities, int t0, int u, int i, int j, double s, double d){
+double rightSumOfIntegrals(arma::cube& probabilities, int t0, int u, int i, int j, double s){
   double rightSumResult=0;
   for(int l=0; l<states; l++){
     if(l !=j){
