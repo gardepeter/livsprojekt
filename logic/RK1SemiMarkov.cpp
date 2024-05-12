@@ -58,7 +58,7 @@ void RK1Step(arma::cube& probabilities, double startTime, double startDuration, 
     for(int j = 0; j < states; j++){
       for(unsigned int d = 0; d * stepLength < startDuration + iteration * stepLength; d++){
         probabilities(d, iteration, states * i + j) = probabilities(d, iteration - 1, states * i + j)
-          + stepLength * transformationKolmogorov(probabilities, startTime, startDuration, i, j, startTime + stepLength * iteration, startTime + stepLength * iteration, stepLength);
+          + stepLength * transformationKolmogorov(probabilities, startTime, startDuration, i, j, startTime + stepLength * iteration, startDuration + stepLength * iteration, stepLength);
       }
     }
   }
