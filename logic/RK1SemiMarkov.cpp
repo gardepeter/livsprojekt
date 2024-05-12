@@ -1,6 +1,8 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.hpp"
 double stepSize=1/12; //midlertidigt for at se ting virker
+const double EPSILON = 0.0001;
+const double MAX_ITERATION = 10000;
 
 
 double intensityOutOfState(int j, double s, double d){
@@ -65,14 +67,37 @@ double rightSumOfIntegrals(arma::cube& probabilities, int t0, int u, int i, int 
 
 
 //TODO
-double transformationKolmogorov(arma::cube& probabilities, int t0, int i, int j, double s, double d){
+double transformationKolmogorov(arma::cube& probabilities, int t0, int u, int i, int j, double s, double d){
   return - leftIntegral(probabilities, t0, i, j, s, d)
-          + rightSumOfIntegrals(probabilities, t0, i, j, s, d);
+          + rightSumOfIntegrals(probabilities, t0, u, i, j, s, d);
 }
 
 //TODO
 void RK1Step(arma::cube& probabilities, int t0, int startDuration, double t, double stepLength, int states){
   
+}
+
+void firstIteration(arma::cube& probabilities, double startDuration, double stepLength, int nrow){
+  for(int dim = 0; dim < states; dim++){
+    for(int d = 0; d < nrow; d++){
+      if(d * stepLength > startDuration){
+        break;
+      }
+      probabilities(0, d, dim) = 1.;
+    }
+  }
+}
+
+int calcultateStepAmounts(double startDuration, int stepAmount){
+  double optimalLength = 1. / (double)stepAmount;
+  int n = 0;
+  
+  while(fmod(startDuration, optimalLength) >= EPSILON && n < MAX_ITERATION){
+    optimalLength = 1. / (double)(stepAmount + n);
+    n++;
+  }
+  
+  return stepAmount + n;
 }
 
 void saveCube(arma::cube& probabilities, int states){
@@ -85,20 +110,25 @@ void saveCube(arma::cube& probabilities, int states){
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-void RK1(int startTime, int startDuration, int endTime, int stepAmount) {
+int RK1(double startTime, double startDuration, double endTime, int stepAmount) {
   if(endTime <= startTime || stepAmount <= 1){
-    return;
+    return -1;
   }
   
-  double stepLength = 1. / (double)stepAmount;
+  int optimalStepAmount = calcultateStepAmounts(startDuration, stepAmount);
+  double stepLength = 1. / (double)optimalStepAmount;
   
-  int durationStepAmount = stepAmount + ceil(stepAmount / startDuration); //TODO, maybe not the correct amount of steps in duration axis.
-  arma::cube probabilities(stepAmount, durationStepAmount, states * states);
+  int nrow = ceil(startDuration * stepLength) + optimalStepAmount;
+  int ncol = optimalStepAmount;
+  arma::cube probabilities(ncol, nrow, states * states);
+  
+  firstIteration(probabilities, startDuration, stepLength, nrow);
   
   for(int n = 1; n < stepAmount; n++){
     RK1Step(probabilities, startTime, startDuration, startTime + n * stepLength, stepLength, states);
   }
   
   saveCube(probabilities, states);
+  return optimalStepAmount;
 }
 
