@@ -50,7 +50,7 @@ double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i
 
 double transformationKolmogorov(arma::cube& probabilities, double t0, double u, int i, int j, double s, double d, double stepLength){
   return - leftIntegral(probabilities, t0, i, j, s, d, stepLength)
-           + rightSumOfIntegrals(probabilities, t0,u , i, j, s, stepLength);
+          + rightSumOfIntegrals(probabilities, t0,u , i, j, s, stepLength);
 }
 
 void RK1Step(arma::cube& probabilities, double startTime, double startDuration, int iteration, double stepLength, int states){
@@ -76,11 +76,11 @@ bool isNotMultipla(double x, double y){
   return abs(x*y - trunc(x*y)) >= EPSILON;
 }
 
+
 //For debugging uses
 // void saveCube(arma::cube& probabilities, int states){
 //   probabilities.slice(0).save("p00.csv", arma::csv_ascii);
 // }
-
 void saveCube(arma::cube& probabilities, int states){
   for(int i = 0; i < states; i++){
     for(int j = 0; j < states; j++){
