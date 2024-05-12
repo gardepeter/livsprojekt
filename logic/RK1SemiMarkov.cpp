@@ -37,11 +37,6 @@ double rightSumOfIntegrals(arma::cube& probabilities, int i, int j, double s, do
 double trapezoidalRightEstimation(arma::cube& probabilities, int t0, int u, int i, int j, int l, double s, double d){
   double trapezoidalSum=0;
   for(int n=1; n< round((u+s-t0)/stepSize); n++){ // this is for the y-coordinate of the probability matrix
-    //posiable problems: n=0 and we get a problem with (n-1) part. so look changed to start from 1
-    //trapezoidalSum += (1/2)*(probabilities.slice(states * i + l)[,std::round((s-t0)/stepSize)-1]+probabilities.slice(states * i + l)[,std::round((s-t_0)/stepSize)-1])
-    //*(mu(l,j,s,n*stepSize)-mu(l,j,s,stepSize*(n-1)));
-    
-    
     // s=t0+xh 
     trapezoidalSum += (1/2)*(probabilities(round((s-t0)/stepSize),n,states * i + l)+probabilities(round((s-t0)/stepSize),n-1,states * i + l))
     *(mu(l,j,s,n*stepSize)+mu(l,j,s,stepSize*(n-1)));
