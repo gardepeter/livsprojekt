@@ -3,4 +3,4 @@ library(Rcpp)
 library(RcppArmadillo)
 
 Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
-RK1(1.0, 2.0, 5)
+RK1(1.0, 1.0, 3.0, 10)
