@@ -76,5 +76,46 @@ probabilities_cashflow<-mutate(probabilities,cashflow=p_11*10000)
 ggplot(probabilities_cashflow,aes(x=age_in_month,y=cashflow))+
   geom_line()
 
+#Reserve
+forward_rates <- read_delim("forward rates.csv", 
+                            delim = ";", escape_double = FALSE, col_types = cols(år = col_integer()), 
+                            trim_ws = TRUE)
+#ZCB_P
+reserve<-function(t,n){
+  0.5*(
+    exp(-forward_rates[t,2])*probabilities_cashflow[,11])
+  
+}
+
+f<-function(s){
+  exp(-forward_rates[s,2])*probabilities_cashflow[s,11]
+  }
+
+trapetz<-function(s){
+  for(i in 1:s){
+  sum<-0.5*(exp(-forward_rates[1,2])*probabilities_cashflow[i+12,11]+
+         exp(-forward_rates[1,2])*probabilities_cashflow[i+12,11])
+  sum<-sum+sum
+  }
+  return(sum)
+}
+
+trapetz(10)
+
+for(i in 1:10){
+  sum<-0.5*(exp(-forward_rates[1,2])*probabilities_cashflow[i+12,11]+
+              exp(-as.numeric(unlist(forward_rates[1,2])))*probabilities_cashflow[i+12,11])
+  sum<-sum+sum
+}
 
 
+
+
+
+forward_rates
+
+library(pracma)
+
+interp_rate <- function(t) {
+  interp1(forward_rates$år, forward$rate, t)
+}
