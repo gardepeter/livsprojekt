@@ -16,11 +16,11 @@ double intensityOutOfState(int j, double s, double d){
 }
 
 // d=x*h
-double leftIntegral(arma::cube& probabilities, double t0, int i, int j, double s, double d, double stepLength, int iteration){ 
+double leftIntegral(arma::cube& probabilities, double t0, int i, int j, double s, int d_step, double stepLength, int iteration){ 
   double trapezoidalSum=0;
-  for(int n=1; n< round(d/stepLength); n++){ // this is for the y-coordinate of the probability matrix
+  for(int n=1; n < d_step; n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
-    trapezoidalSum += 0.5*(probabilities(n, iteration - 1, states * i + j) - probabilities(n-1, iteration - 1, states * i + j))
+    trapezoidalSum += 0.5*(probabilities(n, iteration, states * i + j) - probabilities(n-1, iteration, states * i + j))
     *(intensityOutOfState(j,s,n*stepLength)+intensityOutOfState(j,s,stepLength*(n-1)));
   }
   return trapezoidalSum;
@@ -32,10 +32,10 @@ double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u
   double trapezoidalSum=0;
   for(int n=1; n< round((u+s-t0)/stepLength); n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
-    trapezoidalSum += 0.5*(probabilities(n, iteration - 1,states * i + l) - probabilities(n-1, iteration - 1, states * i + l))
+    trapezoidalSum += 0.5*(probabilities(n, iteration, states * i + l) - probabilities(n-1, iteration, states * i + l))
     *(mu(l,j,s,n*stepLength)+mu(l,j,s,stepLength*(n-1)));
   }
-  return trapezoidalSum;
+  return round((u+s-t0)/stepLength);
 }
 
 double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i, int j, double s, double stepLength, int iteration){
@@ -49,27 +49,27 @@ double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i
   return rightSumResult;
 }
 
-double transformationKolmogorov(arma::cube& probabilities, double t0, double u, int i, int j, double s, double d, double stepLength, int iteration){
-  return - leftIntegral(probabilities, t0, i, j, s, d, stepLength, iteration)
-          + rightSumOfIntegrals(probabilities, t0, u , i, j, s, stepLength, iteration);
-}
+// double transformationKolmogorov(arma::cube& probabilities, double t0, double u, int i, int j, double s, int d_step, double stepLength, int iteration){
+//   return /*- leftIntegral(probabilities, t0, i, j, s, d_step, stepLength, iteration)*/ //edited
+//            + rightSumOfIntegrals(probabilities, t0, u , i, j, s, stepLength, iteration);
+// }
 
 void RK1Step(arma::cube& probabilities, double startTime, double startDuration, int iteration, double stepLength, int states){
   for(int i = 0; i < states; i++){
     for(int j = 0; j < states; j++){
-      for(unsigned int d = 0; d * stepLength < startDuration + iteration * stepLength; d++){
-        probabilities(d, iteration, states * i + j) = probabilities(d, iteration - 1, states * i + j)
-          + stepLength * transformationKolmogorov(probabilities, startTime, startDuration, i, j, startTime + stepLength * iteration, startDuration + stepLength * iteration, stepLength, iteration);
+      double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration);
+      
+      for(unsigned int d_step = 1; d_step < (int)floor(startDuration/stepLength) + iteration; d_step++){
+        probabilities(d_step, iteration, states * i + j) = probabilities(d_step - 1, iteration - 1, states * i + j)
+          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * (d_step - 1), d_step - 1, stepLength, iteration - 1) + rightSum);
       }
     }
   }
 }
 
-void boundaryCondition(arma::cube& probabilities, double startDuration, double stepLength){
+void boundaryCondition(arma::cube& probabilities, int locationOfOne){
   for(int dim = 0; dim < states; dim++){
-    for(unsigned int d = 0; d * stepLength < startDuration; d++){
-      probabilities(d, 0, (states + 1) * dim) = 1.;
-    }
+    probabilities(locationOfOne, 0, (states + 1) * dim) = 1.;
   }
 }
 
@@ -101,13 +101,14 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmount) 
   
   double stepLength = 1. / (double)stepAmount;
   
-  int nrow = (int)round(startDuration * stepAmount) + stepAmount;
+  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmount);
+  int nrow = stepsFromZeroToStartDuration + stepAmount;
   int ncol = stepAmount;
   arma::cube probabilities(nrow, ncol, states * states);
   
-  boundaryCondition(probabilities, startDuration, stepLength);
+  boundaryCondition(probabilities, stepsFromZeroToStartDuration - 1);
   
-  for(int iteration = 1; iteration < 10; iteration++){
+  for(int iteration = 1; iteration < 3; iteration++){ //edited
     RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states);
   }
   
