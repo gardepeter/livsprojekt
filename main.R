@@ -87,6 +87,7 @@ reserve<-function(t,n){
   
 }
 
+exponential<-function(t,s)
 f<-function(s){
   exp(-forward_rates[s,2])*probabilities_cashflow[s,11]
   }
