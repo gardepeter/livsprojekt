@@ -35,7 +35,7 @@ double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u
     trapezoidalSum += 0.5*(probabilities(n, iteration, states * i + l) - probabilities(n-1, iteration, states * i + l))
     *(mu(l,j,s,n*stepLength)+mu(l,j,s,stepLength*(n-1)));
   }
-  return round((u+s-t0)/stepLength);
+  return trapezoidalSum;
 }
 
 double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i, int j, double s, double stepLength, int iteration){
@@ -49,19 +49,14 @@ double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i
   return rightSumResult;
 }
 
-// double transformationKolmogorov(arma::cube& probabilities, double t0, double u, int i, int j, double s, int d_step, double stepLength, int iteration){
-//   return /*- leftIntegral(probabilities, t0, i, j, s, d_step, stepLength, iteration)*/ //edited
-//            + rightSumOfIntegrals(probabilities, t0, u , i, j, s, stepLength, iteration);
-// }
-
 void RK1Step(arma::cube& probabilities, double startTime, double startDuration, int iteration, double stepLength, int states){
   for(int i = 0; i < states; i++){
     for(int j = 0; j < states; j++){
-      double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration);
+      double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration - 1);
       
-      for(unsigned int d_step = 1; d_step < (int)floor(startDuration/stepLength) + iteration; d_step++){
+      for(int d_step = 1; d_step < (int)floor(startDuration/stepLength) + iteration; d_step++){
         probabilities(d_step, iteration, states * i + j) = probabilities(d_step - 1, iteration - 1, states * i + j)
-          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * (d_step - 1), d_step - 1, stepLength, iteration - 1) + rightSum);
+          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * d_step, d_step, stepLength, iteration - 1) + rightSum); //TODO investegate if d_step - 1 or not
       }
     }
   }
@@ -108,7 +103,7 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmount) 
   
   boundaryCondition(probabilities, stepsFromZeroToStartDuration - 1);
   
-  for(int iteration = 1; iteration < 3; iteration++){ //edited
+  for(int iteration = 1; iteration < stepAmount; iteration++){
     RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states);
   }
   
