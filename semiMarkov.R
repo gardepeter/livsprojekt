@@ -31,4 +31,3 @@ temp_vec = temp_vector_00 + temp_vector_01 + temp_vector_02
 
 sum(temp_vec < 0.9) #Should be 
 length(temp_vec)
-
