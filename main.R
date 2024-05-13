@@ -48,12 +48,33 @@ plot_1 <- ggplot(probabilities_1_long, aes(x = age_in_month, y = probabilities, 
         legend.title = element_blank()) +
   scale_color_discrete(labels = legend_labels[4:6])  
 
-# Combine plots using grid.arrange
 grid.arrange(plot_0, plot_1, nrow = 1)
 
-#Cashflow
 
 
+#Betalingfunktion. Opdater senere?
+b_1 <- function(x) {
+  return(1500)
+}
+
+#Gammel cashflow
+#cashflow<-function(t,s){
+# result<-(b_1(s+probabilities$age_in_month)*probabilities$p_11)-
+#   (b_1(t+probabilities$age_in_month)*probabilities$p_11)
+#  return(result)
+#}
+
+#Ny cashflow
+#Husk at ændre age in month til rigtig. 1 timestep frem
+#cashflow<-function(s,x){
+#  result<-probabilities[x,2]*(b_1(x+s))
+#  return(result)
+#}
+
+probabilities_cashflow<-mutate(probabilities,cashflow=p_11*10000)
+
+ggplot(probabilities_cashflow,aes(x=age_in_month,y=cashflow))+
+  geom_line()
 
 
 
