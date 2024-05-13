@@ -1,0 +1,45 @@
+---
+title: "Anna's code"
+output: html_document
+date: "2024-05-07"
+---
+Library
+```{r}
+options(scipen = 99)
+library(Rcpp)
+library(RcppArmadillo)
+library(ggplot2)
+library(readr)
+library(tidyverse)
+library(gridExtra)
+#Rcpp::sourceCpp("logic/cpp/RungaKutta/RK4Markov.cpp")
+```
+
+Data
+```{r}
+claims <- read_csv("claims.csv")
+claims<-claims[,c(1,2)]
+colnames(claims)<-c("claim_size","deductible")
+claims<-mutate(claims,claim_size=claim_size/1000,deductible=deductible/1000)
+View(claims)
+
+claims$claim_adjusted<-claims$claim_size - claims$deductible
+```
+
+Fit
+```{r}
+library(fitdistrplus)
+#Lognormal
+fit_lognormal <- fitdist(claims$claim_size-claims$deductible, "lnorm")
+summary(fit_lognormal)
+
+#Weibull
+fit_weibull <- fitdist(claims$claim_size-claims$deductible, "weibull")
+summary(fit_weibull)
+
+#Pareto
+fit_pareto <- fitdist(claims$claim_size-claims$deductible, "pareto")
+summary(fit_pareto)
+
+```
+
