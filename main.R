@@ -65,23 +65,25 @@ ggplot(probabilities_cashflow,aes(x=time,y=cashflow))+
   geom_line()
 
 #Reserve
-forward_rates <- read_delim("forward rates.csv", 
-                            delim = ";", escape_double = FALSE, col_types = cols(år = col_integer()), 
-                            trim_ws = TRUE)
+forward_rates <- read_delim("data/forward rates.csv", 
+                            delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
-f<-approxfun(forward_rates$år , forward_rates$rate)
-f(2)
+#Kontinuert rate funktion. 
+rate<-approxfun(forward_rates$år , forward_rates$rate)
 
-#Bemærk at renten skal være i 2. kolonne
+#Når denne rate funktion bruges, skal man være opmærksom på, at det er års-tidsenhed,
+#så hvis du vil finde raten 30 måneder frem, skal du siger rate(30/12)
 
+
+#Følgende er lavet ud fra månedsniveau (derfor vi dividerer med 12)
 exponential<-function(t,s,n){
   delta_x<-(s-t)/n
 
-    sum<-forward_rates[floor(t),2]#rente i 2. kolonne
+    sum<-rate(t/12+1) #t/12 i raten for at få på års-niveau
   for(i in 1:n-1){
-  sum<-sum+2*forward_rates[floor(i*(s-t)/n+t),2] #Tager floor for at undgå 
+  sum<-sum+2*rate((i*(s-t)/n+t)/12+1) # +1, da vi skal bruge den forward rate der svarer til 1 år efter tid t
   }
-  sum<-forward_rates[floor(s),2]
+  sum<-sum+rate(s/12+1)
   
   T_n<-delta_x*0.5*(sum)
   
@@ -90,31 +92,21 @@ exponential<-function(t,s,n){
   return(exponential_output)
 }
 
-
-
 reserve<-function(t,n,N){
   delta_x<-(N-t)/n
   
-  sum<-exponential(t,t,n)*probabilities[floor(t),10]*10000 #Time column
+  sum<-exponential(t,t,n)*probabilities[floor(t),2]*10000 #p_01 column
     for(i in 1:n-1){
-      sum<-sum+2*exponential(t,i*(N-t)/n+t,n)*probabilities[floor(i*(N-t)/n+t),10]*10000
-      #Tager floor, da vi har en stepfunktion og ønsker vntre endepunkt (da det er der vi har data)
+      sum<-sum+2*exponential(t,i*(N-t)/n+t,n)*probabilities[floor(i*(N-t)/n+t),2]*10000
+      #Tager floor, da vi har en stepfunktion og ønsker ventre endepunkt (da det er der vi har data)
     }
-  sum<- exponential(t,N,n)*probabilities[floor(N),10]*10000
+  sum<- exponential(t,N,n)*probabilities[floor(N),2]*10000+sum
   reserve_output<- delta_x*0.5*sum
   
   return(reserve_output)
 }
 
-reserve(2,500,100)
-t_values <- seq(0, 100, length.out = 100)
-reserve_values <- sapply(t_values, function(t) reserve(t, n, N))
+reserve(1,1000,120)
 
 
 
-
-library(pracma)
-
-interp_rate <- function(t) {
-  interp1(forward_rates$år, forward$rate, t)
-}
