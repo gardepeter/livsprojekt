@@ -74,26 +74,26 @@ bool isNotMultipla(double x, double y){
 
 
 //For debugging uses
-void saveCube(arma::cube& probabilities, int states){
-  for(int j = 0; j < states; j++){
-      probabilities.slice(j).save("p0" + std::to_string(j) + ".csv", arma::csv_ascii);
-  }
-}
 // void saveCube(arma::cube& probabilities, int states){
-//   for(int i = 0; i < states; i++){
-//     for(int j = 0; j < states; j++){
-//       probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
-//     }
+//   for(int j = 0; j < states; j++){
+//       probabilities.slice(j).save("p0" + std::to_string(j) + ".csv", arma::csv_ascii);
 //   }
 // }
+void saveCube(arma::cube& probabilities, int states){
+  for(int i = 0; i < states; i++){
+    for(int j = 0; j < states; j++){
+      probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
+    }
+  }
+}
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 int RK1(double startTime, double startDuration, double endTime, int stepAmount) {
-  if(endTime <= startTime || stepAmount <= 1 || isNotMultipla(startDuration, (double)stepAmount)){
-    return  -1;
+  if( endTime <= startTime ||  stepAmount <= 1 || isNotMultipla(startDuration, (double)stepAmount)){
+    return -1;
   }
-  
+
   double stepLength = 1. / (double)stepAmount;
   
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmount);

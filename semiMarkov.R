@@ -31,3 +31,16 @@ temp_vec = temp_vector_00 + temp_vector_01 + temp_vector_02
 
 sum(temp_vec < 0.9) #Should be 
 length(temp_vec)
+
+#Dødeintensiter for semi markov
+deathInt = readxl::read_excel("data/deathIntensity.xlsx")
+intensities = unlist(deathInt[21:111,14])
+
+for(age in 20 + 0:(length(intensities) - 1) ){
+  print(paste0("else if( ", age, " <= x < ", age + 1, " ){"))
+  print(paste0("   return ", intensities[age - 19], ";"))
+  print(paste0("}"))
+}
+
+
+
