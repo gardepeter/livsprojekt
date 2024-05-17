@@ -11,8 +11,10 @@ library(dplyr)
 #Rcpp::sourceCpp("logic/cpp/helperFunctions.cpp")
 
 #Plot of probabilities
-probabilities <- read_csv("probabilities.csv")
-probabilities$age_in_month<-c(1:600)
+
+
+probabilities <- read_csv("data/probabilities.csv")
+probabilities$time<-c(1:600)
 
 probabilities_0<-probabilities[,c(1:3,10)]
 probabilities_1<-probabilities[,c(4:6,10)]
@@ -32,7 +34,7 @@ legend_labels <- c(expression(paste("p"["00"])),
                    expression(paste("p"[11])),
                    expression(paste("p"[12])))
 
-plot_0 <- ggplot(probabilities_0_long, aes(x = age_in_month, y = probabilities, color = transitions)) +
+plot_0 <- ggplot(probabilities_0_long, aes(x = time, y = probabilities, color = transitions)) +
   geom_line() +
   labs(title = "From active state") +
   ylab("Probabilities") +
@@ -40,7 +42,7 @@ plot_0 <- ggplot(probabilities_0_long, aes(x = age_in_month, y = probabilities, 
   theme(legend.position = "bottom",
         legend.title = element_blank())
 
-plot_1 <- ggplot(probabilities_1_long, aes(x = age_in_month, y = probabilities, color = transitions)) +
+plot_1 <- ggplot(probabilities_1_long, aes(x = time, y = probabilities, color = transitions)) +
   geom_line() +
   labs(title = "From disabled state") +
   theme(axis.title.y = element_blank(),
@@ -57,23 +59,9 @@ b_1 <- function(x) {
   return(1500)
 }
 
-#Gammel cashflow
-#cashflow<-function(t,s){
-# result<-(b_1(s+probabilities$age_in_month)*probabilities$p_11)-
-#   (b_1(t+probabilities$age_in_month)*probabilities$p_11)
-#  return(result)
-#}
-
-#Ny cashflow
-#Husk at ændre age in month til rigtig. 1 timestep frem
-#cashflow<-function(s,x){
-#  result<-probabilities[x,2]*(b_1(x+s))
-#  return(result)
-#}
-
 probabilities_cashflow<-mutate(probabilities,cashflow=p_11*10000)
 
-ggplot(probabilities_cashflow,aes(x=age_in_month,y=cashflow))+
+ggplot(probabilities_cashflow,aes(x=time,y=cashflow))+
   geom_line()
 
 #Reserve
@@ -83,40 +71,47 @@ forward_rates <- read_delim("forward rates.csv",
 
 f<-approxfun(forward_rates$år , forward_rates$rate)
 f(2)
-#ZCB_P
-reserve<-function(t,n){
-  0.5*(
-    exp(-forward_rates[t,2])*probabilities_cashflow[,11])
+
+#Bemærk at renten skal være i 2. kolonne
+
+exponential<-function(t,s,n){
+  delta_x<-(s-t)/n
+
+    sum<-forward_rates[floor(t),2]#rente i 2. kolonne
+  for(i in 1:n-1){
+  sum<-sum+2*forward_rates[floor(i*(s-t)/n+t),2] #Tager floor for at undgå 
+  }
+  sum<-forward_rates[floor(s),2]
   
-}
-
-exponential<-function(t,s)
-f<-function(s){
-  exp(-forward_rates[s,2])*probabilities_cashflow[s,11]
-  }
-
-trapetz<-function(s){
-  for(i in 1:s){
-  sum<-0.5*(exp(-forward_rates[1,2])*probabilities_cashflow[i+12,11]+
-         exp(-forward_rates[1,2])*probabilities_cashflow[i+12,11])
-  sum<-sum+sum
-  }
-  return(sum)
-}
-
-trapetz(10)
-
-for(i in 1:10){
-  sum<-0.5*(exp(-forward_rates[1,2])*probabilities_cashflow[i+12,11]+
-              exp(-as.numeric(unlist(forward_rates[1,2])))*probabilities_cashflow[i+12,11])
-  sum<-sum+sum
+  T_n<-delta_x*0.5*(sum)
+  
+  exponential_output<- exp(-T_n)
+  
+  return(exponential_output)
 }
 
 
 
+reserve<-function(t,n,N){
+  delta_x<-(N-t)/n
+  
+  sum<-exponential(t,t,n)*probabilities[floor(t),10]*10000 #Time column
+    for(i in 1:n-1){
+      sum<-sum+2*exponential(t,i*(N-t)/n+t,n)*probabilities[floor(i*(N-t)/n+t),10]*10000
+      #Tager floor, da vi har en stepfunktion og ønsker vntre endepunkt (da det er der vi har data)
+    }
+  sum<- exponential(t,N,n)*probabilities[floor(N),10]*10000
+  reserve_output<- delta_x*0.5*sum
+  
+  return(reserve_output)
+}
+
+reserve(2,500,100)
+t_values <- seq(0, 100, length.out = 100)
+reserve_values <- sapply(t_values, function(t) reserve(t, n, N))
 
 
-forward_rates
+
 
 library(pracma)
 
