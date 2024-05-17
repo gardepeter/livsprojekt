@@ -11,7 +11,7 @@ library(dplyr)
 #Rcpp::sourceCpp("logic/cpp/helperFunctions.cpp")
 
 #Plot of probabilities
-probabilities <- read_csv("data/probabilities.csv")
+probabilities <- read_csv("probabilities.csv")
 probabilities$age_in_month<-c(1:600)
 
 probabilities_0<-probabilities[,c(1:3,10)]
@@ -77,9 +77,12 @@ ggplot(probabilities_cashflow,aes(x=age_in_month,y=cashflow))+
   geom_line()
 
 #Reserve
-forward_rates <- read_delim("data/forward rates.csv", 
+forward_rates <- read_delim("forward rates.csv", 
                             delim = ";", escape_double = FALSE, col_types = cols(år = col_integer()), 
                             trim_ws = TRUE)
+
+f<-approxfun(forward_rates$år , forward_rates$rate)
+f(2)
 #ZCB_P
 reserve<-function(t,n){
   0.5*(
