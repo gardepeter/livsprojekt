@@ -43,36 +43,41 @@ summary(fit_pareto)
 ```
 
 ```{r}
-E_X_star_minus_d <- function(d, fit, distribution) {
-  if (distribution == "lnorm") {
-    meanlog <- fit$estimate[1]
-    sdlog <- fit$estimate[2]
-    return(plnorm(d, meanlog, sdlog, lower.tail = FALSE) * 
-             (exp(meanlog + 0.5 * sdlog^2) * (1 - pnorm((log(d) - meanlog - sdlog^2) / sdlog))))
-  } else if (distribution == "weibull") {
-    shape <- fit$estimate[1]
-    scale <- fit$estimate[2]
-    return(pweibull(d, shape, scale, lower.tail = FALSE) * 
-             (scale * gamma(1 + 1/shape) * (1 - pweibull(d, shape + 1, scale))))
-  } else if (distribution == "pareto") {
-    shape <- fit$estimate[1]
-    scale <- fit$estimate[2]
-    if (d < scale) return(Inf)  # For Pareto, E[(X* - d)_+] is undefined for d < scale
-    return((shape * scale^shape) / ((shape - 1) * d^(shape - 1)))
-  }
+exceed_pareto<-function(d){
+  alpha<-454.257216
+  k<-2.005486
+  output<-(k+d)/alpha-1
+  return(output)
 }
 
-d_values <- seq(0, 10000, by = 1)
-lognormal_values <- sapply(d_values, E_X_star_minus_d, fit = fit_lognormal, distribution = "lnorm")
-weibull_values <- sapply(d_values, E_X_star_minus_d, fit = fit_weibull, distribution = "weibull")
+exceed_weibull<-function(d){
+  tau<-0.7342342
+  c<-364.9229076
+  output<- (d^(1-tau))/(c*tau)
+  return(output)
+}
+
+exceed_lognormal<-function(d){
+  sigma_2<-1.164554
+  output<- (sigma_2*d)/(log(d)-d)
+  return(output)
+}
+
+d_values<-c(1:10000)
+
+lognormal_values<-sapply(d_values,exceed_lognormal)
+weibull_values<-sapply(d_values,exceed_weibull)
+pareto_values<-sapply(d_values,exceed_pareto)
 ```
 
 Plot
 ```{r}
-plot(d_values, lognormal_values, type = "l", col = "blue", ylim = c(0, max(lognormal_values, weibull_values, na.rm = TRUE)), 
+plot(d_values, lognormal_values, type = "l", col = "blue", ylim = c(-2, 40), 
      ylab = "E[(X* - d)_+]", xlab = "d", main = "Expected value of (X* - d)_+ for different distributions")
 lines(d_values, weibull_values, col = "red")
+lines(d_values, pareto_values, col = "green")
 
-legend("topright", legend = c("Lognormal", "Weibull"), col = c("blue", "red"), lty = 1)
+
+legend("topright", legend = c("Lognormal", "Weibull","Pareto"), col = c("blue", "red","green"), lty = 1)
 ```
 
