@@ -96,15 +96,20 @@ reserve<-function(t,n,N){
   delta_x<-(N-t)/n
   
   sum<-exponential(t,t,n)*probabilities[floor(t),2]*10000 #p_01 column
+  
     for(i in 1:n-1){
       sum<-sum+2*exponential(t,i*(N-t)/n+t,n)*probabilities[floor(i*(N-t)/n+t),2]*10000
-      #Tager floor, da vi har en stepfunktion og ønsker ventre endepunkt (da det er der vi har data)
+      #Tager floor, da vi har en stepfunktion og ønsker venstre endepunkt
     }
+  
   sum<- exponential(t,N,n)*probabilities[floor(N),2]*10000+sum
+  
   reserve_output<- delta_x*0.5*sum
   
   return(reserve_output)
 }
+
+
 
 reserve(1,1000,120)
 
