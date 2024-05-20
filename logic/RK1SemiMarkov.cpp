@@ -101,7 +101,7 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
   int ncol = stepAmountPerTimeUnit * (endTime - startTime);
   arma::cube probabilities(nrow, ncol, states * states);
   
-  boundaryCondition(probabilities, stepsFromZeroToStartDuration - 1);
+  boundaryCondition(probabilities, stepsFromZeroToStartDuration );
   
   for(int iteration = 1; iteration < stepAmountPerTimeUnit * (endTime - startTime); iteration++){
     RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states);
