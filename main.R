@@ -67,14 +67,15 @@ ggplot(probabilities_cashflow,aes(x=time,y=cashflow))+
 #Reserve
 forward_rates <- read_delim("data/forward rates.csv", 
                             delim = ";", escape_double = FALSE, trim_ws = TRUE)
+colnames(forward_rates)<-c("year","rate")
 
 #Kontinuert rate funktion. 
-rate<-approxfun(forward_rates$år , forward_rates$rate)
+rate<-approxfun(forward_rates$year , forward_rates$rate)
 
 #Når denne rate funktion bruges, skal man være opmærksom på, at det er års-tidsenhed,
 #så hvis du vil finde raten 30 måneder frem, skal du siger rate(30/12)
 
-
+#------------------------------------------------------------------------------
 #Følgende er lavet ud fra månedsniveau (derfor vi dividerer med 12)
 exponential<-function(t,s,n){
   delta_x<-(s-t)/n
@@ -109,9 +110,48 @@ reserve<-function(t,n,N){
   return(reserve_output)
 }
 
+#-------------------------------------------------------------------------------
 
+
+#Funktionerne med generelt cashflow og rentekurve. Sørg for at rentekurverne ser ens ud i opbygning
+exponential_rate<-function(t,s,n,rentekurve){
+  rate<-approxfun(rentekurve$year , rentekurve$rate)
+  delta_x<-(s-t)/n
+  
+  sum<-rate(t/12+1) #t/12 i raten for at få på års-niveau
+  for(i in 1:n-1){
+    sum<-sum+2*rate((i*(s-t)/n+t)/12+1) # +1, da vi skal bruge den forward rate der svarer til 1 år efter tid t
+  }
+  sum<-sum+rate(s/12+1)
+  
+  T_n<-delta_x*0.5*(sum)
+  
+  exponential_output<- exp(-T_n)
+  
+  return(exponential_output)
+}
+
+cashflow_data<-tibble("cashflow"=((rep(10000,600)*probabilities[,2])),
+                 time=c(1:600))
+
+reserve_cashflow<-function(t,n,N,cashflow,rentekurve){
+  delta_x<-(N-t)/n
+  
+  sum<-exponential_rate(t,t,n,rentekurve)*cashflow[t,1] #p_01 column
+  
+  for(i in 1:n-1){
+    sum<-sum+2*exponential_rate(t,i*(N-t)/n+t,n,rentekurve)*cashflow[floor(i*(N-t)/n+t),1]
+    #Tager floor, da vi har en stepfunktion og ønsker venstre endepunkt
+  }
+  
+  sum<- exponential_rate(t,N,n,rentekurve)*cashflow[floor(N),1]+sum
+  
+  reserve_output<- delta_x*0.5*sum
+  
+  return(reserve_output)
+}
+
+reserve_cashflow(1,1000,120,cashflow_data,forward_rates)
 
 reserve(1,1000,120)
-
-
 
