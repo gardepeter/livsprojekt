@@ -1,12 +1,19 @@
 spg:
-  Hvilke ss summer til 1?  
+  Forward rate (meget høj) vs spot rate (normal)
+  flere analyser
+  dv01 
   
   
-Todo (Initilized / In progress / Done):
-    i) Kerne for kolmogorov (ingen varighed) - done
-   ii) Kerne for kolmogorov (varighed) - In progress
-        1) Eulers Metoden - In progress
-        2) Trapez Metoden - In progress
-  iii) Plot sandsynligheder ingen varigheder - In progress
-   iv) beregn og plot cash flows - initilized
-    v) 
+Todo (Initilized / In progress / Done): 
+    i) Kerne for kolmogorov (ingen varighed) - done 
+        1) Udvidelse så csv int. works. - initilized 
+   ii) Kerne for kolmogorov (varighed) - Done 
+        1) Eulers Metoden - Done 
+        2) Trapez Metoden - Done 
+  iii) Plot sandsynligheder ingen varigheder - Done 
+        1) Plot sandsynligheder varigheder, chosen durations - initilized
+   iv) Beregn endeligt cash flow (20 årig) and plot - initilized
+    v) Fitning af poisson GLM (markov int.) - initilized 
+   vi) DV01 - In progress 
+  vii) Beregn reserver både markov og semi markov - In progress
+ viii) Agg. markov connection to markov (micro states) - initilized (high importance)
