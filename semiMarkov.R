@@ -1,45 +1,26 @@
-#options(scipen = 99)
+#****************************************************
+#*************** SEE semiMarkovValidation.R **********
+#*#***************************************************
+library(tidyverse)
+
 Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 
-startTime = 5.0
-endTime = 15.0
-stepAmountPerTimeUnit = 25 #TODO run with 52 (weeks in a year)
-startIncrement = 12
+age = 20
+startTime = 0.0
+endTime = 25.0
+stepAmountPerTimeUnit = 12 #TODO run with 52 (weeks in a year)
+startIncrement = 1 * stepAmountPerTimeUnit
+karensPeriod = 3
+
 startDuration = startIncrement / stepAmountPerTimeUnit
 
-RK1(startTime, startDuration, endTime, stepAmountPerTimeUnit)
+RK1(startTime, startDuration, endTime, stepAmountPerTimeUnit, age)
+
+cashflow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, karensPeriod, age)
 
 temp00 = readr::read_csv("p00.csv", col_names = F)
 temp01 = readr::read_csv("p01.csv", col_names = F)
 temp02 = readr::read_csv("p02.csv", col_names = F)
-
-
-f = function(matrix, index, amount){
-  vector = c()
-  for(i in 1:amount){
-    vector[i] = matrix[index + i - 1, i]
-  }
-  return(unlist(vector))
-}
-
-temp_vector_00 = f(temp00, startIncrement, stepAmountPerTimeUnit)
-temp_vector_01 = f(temp01, startIncrement, stepAmountPerTimeUnit)
-temp_vector_02 = f(temp02, startIncrement, stepAmountPerTimeUnit)
-
-temp_vec = temp_vector_00 + temp_vector_01 + temp_vector_02
-
-sum(temp_vec < 0.9) #Should be 
-length(temp_vec)
-
-temp10 = readr::read_csv("p10.csv", col_names = F)
-temp11 = readr::read_csv("p11.csv", col_names = F)
-temp12 = readr::read_csv("p12.csv", col_names = F)
-
-temp_vector_10 = f(temp10, startIncrement, stepAmountPerTimeUnit)
-temp_vector_11 = f(temp11, startIncrement, stepAmountPerTimeUnit)
-temp_vector_12 = f(temp12, startIncrement, stepAmountPerTimeUnit)
-
-temp_vec1 = temp_vector_10 + temp_vector_11 + temp_vector_12
 
 #Dødeintensiter for semi markov
 # deathInt = readxl::read_excel("data/deathIntensity.xlsx")
@@ -51,13 +32,6 @@ temp_vec1 = temp_vector_10 + temp_vector_11 + temp_vector_12
 #   print(paste0("}"))
 # }
 
-#DURATION zero test
 
-Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
-startTime = 0.0
-endTime = 5.0
-stepAmountPerTimeUnit = 12 * (endTime - startTime)
-startIncrement = 0
-startDuration = startIncrement / stepAmountPerTimeUnit
 
-RK1(startTime, startDuration, endTime, stepAmountPerTimeUnit)
+

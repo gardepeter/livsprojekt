@@ -39,20 +39,18 @@ double mu12(double x, double d) {
   }
 }
 
-double mu(int i, int j, double x, double d){
-  double age = 60 + x;
-  
+double mu(int i, int j, double x, double d, double age){
   if(i == 0 && j == 1){
-    return mu01(age);
+    return mu01(age + x);
   }
   else if(i == 0 && j == 2){
-    return mu02(age);
+    return mu02(age + x);
   }
   else if(i == 1 && j == 0){
-    return mu10(age, d);
+    return mu10(age + x, d);
   }
   else if(i == 1 && j == 2){
-    return mu12(age, d);
+    return mu12(age + x, d);
   }
   else if(i == 2 && ( j == 1 || j == 2)){
     return 0.;
