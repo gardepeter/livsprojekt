@@ -40,7 +40,7 @@ double mu12(double x, double d) {
 }
 
 double mu(int i, int j, double x, double d){
-  double age = 20 + x;
+  double age = 60 + x;
   
   if(i == 0 && j == 1){
     return mu01(age);

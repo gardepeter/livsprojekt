@@ -18,7 +18,7 @@ double intensityOutOfState(int j, double s, double d){
 // d=x*h
 double leftIntegral(arma::cube& probabilities, double t0, int i, int j, double s, int d_step, double stepLength, int iteration){ 
   double trapezoidalSum=0;
-  for(int n=1; n <= d_step; n++){ // this is for the y-coordinate of the probability matrix
+  for(int n=1; n < d_step; n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
     trapezoidalSum += 0.5*(probabilities(n, iteration, states * i + j) - probabilities(n-1, iteration, states * i + j))
     *(intensityOutOfState(j,s,n*stepLength)+intensityOutOfState(j,s,stepLength*(n-1)));
@@ -56,7 +56,7 @@ void RK1Step(arma::cube& probabilities, double startTime, double startDuration, 
       
       for(int d_step = 1; d_step < (int)floor(startDuration/stepLength) + iteration; d_step++){
         probabilities(d_step, iteration, states * i + j) = probabilities(d_step - 1, iteration - 1, states * i + j)
-          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * (d_step-1), (d_step-1), stepLength, iteration - 1) + rightSum); //TODO investegate if d_step - 1 or not
+          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1) + rightSum); //TODO investegate if d_step - 1 or not
       }
     }
   }
@@ -89,21 +89,21 @@ void saveCube(arma::cube& probabilities, int states){
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-int RK1(double startTime, double startDuration, double endTime, int stepAmount) {
-  if( endTime <= startTime ||  stepAmount <= 1 || isNotMultipla(startDuration, (double)stepAmount)){
+int RK1(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit) {
+  if( endTime <= startTime ||  stepAmountPerTimeUnit <= 1 || isNotMultipla(startDuration, (double)stepAmountPerTimeUnit)){
     return -1;
   }
 
-  double stepLength = 1. / (double)stepAmount;
+  double stepLength = 1. / (double)stepAmountPerTimeUnit;
   
-  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmount);
-  int nrow = stepsFromZeroToStartDuration + stepAmount;
-  int ncol = stepAmount;
+  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
+  int nrow = stepsFromZeroToStartDuration + stepAmountPerTimeUnit * (endTime - startTime);
+  int ncol = stepAmountPerTimeUnit * (endTime - startTime);
   arma::cube probabilities(nrow, ncol, states * states);
   
-  boundaryCondition(probabilities, stepsFromZeroToStartDuration);
+  boundaryCondition(probabilities, stepsFromZeroToStartDuration - 1);
   
-  for(int iteration = 1; iteration < stepAmount; iteration++){
+  for(int iteration = 1; iteration < stepAmountPerTimeUnit * (endTime - startTime); iteration++){
     RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states);
   }
   
