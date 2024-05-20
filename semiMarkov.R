@@ -22,25 +22,41 @@ f = function(matrix, index, amount){
   return(unlist(vector))
 }
 
-iterations = stepAmount
-temp_vector_00 = f(temp00, startIncrement, iterations)
-temp_vector_01 = f(temp01, 1, iterations)
-temp_vector_02 = f(temp02, 1, iterations)
+temp_vector_00 = f(temp00, startIncrement, stepAmount)
+temp_vector_01 = f(temp01, startIncrement, stepAmount)
+temp_vector_02 = f(temp02, startIncrement, stepAmount)
 
 temp_vec = temp_vector_00 + temp_vector_01 + temp_vector_02
 
 sum(temp_vec < 0.9) #Should be 
 length(temp_vec)
 
+temp10 = readr::read_csv("p10.csv", col_names = F)
+temp11 = readr::read_csv("p11.csv", col_names = F)
+temp12 = readr::read_csv("p12.csv", col_names = F)
+
+temp_vector_10 = f(temp10, startIncrement, stepAmount)
+temp_vector_11 = f(temp11, startIncrement, stepAmount)
+temp_vector_12 = f(temp12, startIncrement, stepAmount)
+
+temp_vec1 = temp_vector_10 + temp_vector_11 + temp_vector_12
+
 #Dødeintensiter for semi markov
-deathInt = readxl::read_excel("data/deathIntensity.xlsx")
-intensities = unlist(deathInt[21:111,14])
+# deathInt = readxl::read_excel("data/deathIntensity.xlsx")
+# intensities = unlist(deathInt[21:111,14])
+# 
+# for(age in 20 + 0:(length(intensities) - 1) ){
+#   print(paste0("else if( ", age, " <= x < ", age + 1, " ){"))
+#   print(paste0("   return ", intensities[age - 19], ";"))
+#   print(paste0("}"))
+# }
 
-for(age in 20 + 0:(length(intensities) - 1) ){
-  print(paste0("else if( ", age, " <= x < ", age + 1, " ){"))
-  print(paste0("   return ", intensities[age - 19], ";"))
-  print(paste0("}"))
-}
+#DURATION zero test
 
+startTime = 0.0
+endTime = 5.0
+stepAmount = 12 * (endTime - startTime)
+startIncrement = 0
+startDuration = startIncrement / stepAmount
 
-
+RK1(startTime, startDuration, endTime, stepAmount)
