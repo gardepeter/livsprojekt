@@ -37,6 +37,7 @@ fit_weibull <- fitdist(claims$claim_size-claims$deductible, "weibull")
 summary(fit_weibull)
 
 #Pareto
+library(actuar)
 fit_pareto <- fitdist(claims$claim_size-claims$deductible, "pareto")
 summary(fit_pareto)
 
