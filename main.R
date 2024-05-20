@@ -119,14 +119,14 @@ cashflow_data<-tibble("cashflow"=((rep(10000,600)*probabilities[,2])),
                       time=c(1:600))
 
 exponential_rate<-function(t,s,n,rentekurve){
-  rate<-approxfun(rentekurve$year , rentekurve$rate)
+  rate<-approxfun(rentekurve$year , rentekurve$rate) #hvis det går langsomt kan det være pga den her
   delta_x<-(s-t)/n
   
-  sum<-rate(t/12+1) #t/12 i raten for at få på års-niveau
-  for(i in 1:n-1){
-    sum<-sum+2*rate((i*(s-t)/n+t)/12+1) # +1, da vi skal bruge den forward rate der svarer til 1 år efter tid t
+  sum<-rate(t/12) #t/12 i raten for at få på års-niveau
+  for(i in 1:(n-1)){
+    sum<-sum+2*rate((i*delta_x+t)/12)
   }
-  sum<-sum+rate(s/12+1)
+  sum<-sum+rate(s/12)
   
   T_n<-delta_x*0.5*(sum)
   
@@ -135,7 +135,6 @@ exponential_rate<-function(t,s,n,rentekurve){
   return(exponential_output)
 }
 
-#Har lige ændret alle indgange til +1
 reserve_cashflow<-function(t,n,N,cashflow,rentekurve){
   delta_x<-(N-t)/n
   
@@ -153,7 +152,7 @@ reserve_cashflow<-function(t,n,N,cashflow,rentekurve){
   return(reserve_output)
 }
 
-reserve_cashflow(0,1000,120,cashflow_data,forward_rates)
+reserve_cashflow(0,10000,120,cashflow_data,forward_rates)
 
 reserve(0,1000,120)
 
@@ -186,11 +185,13 @@ ggplot(plot, aes(age, value))+
 spot_rate <- read_delim("data/FT RFR med VA pr. 16. maj.csv", 
                         delim = ";", escape_double = FALSE, trim_ws = TRUE)
 spot_rate<-na.omit(spot_rate)
+spot_rate<-mutate(spot_rate, rate=rate/100)
 
-reserve_cashflow(0,1000,120,unitCashflows[,2],forward_rates)
+reserve_cashflow(0,1000,120,unitCashflows[,3],forward_rates)
 reserve_cashflow(1,1000,120,unitCashflows[,3],spot_rate)
 
-exponential_rate(1,2,1000,forward_rates)
+
+exponential_rate(0,24,100000,forward_rates)
 exponential_rate(1,2,1000,spot_rate)
 
   
