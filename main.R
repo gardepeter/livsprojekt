@@ -96,7 +96,7 @@ exponential<-function(t,s,n){
 reserve<-function(t,n,N){
   delta_x<-(N-t)/n
   
-  sum<-exponential(t,t,n)*probabilities[floor(t),2]*10000 #p_01 column
+  sum<-exponential(t,t,n)*probabilities[floor(t),2]*10000 #p_01 column #Burde det være t+1?
   
     for(i in 1:n-1){
       sum<-sum+2*exponential(t,i*(N-t)/n+t,n)*probabilities[floor(i*(N-t)/n+t),2]*10000
@@ -135,26 +135,27 @@ exponential_rate<-function(t,s,n,rentekurve){
   return(exponential_output)
 }
 
+#Har lige ændret alle indgange til +1
 reserve_cashflow<-function(t,n,N,cashflow,rentekurve){
   delta_x<-(N-t)/n
   
-  sum<-exponential_rate(t,t,n,rentekurve)*cashflow[t,1] #p_01 column
+  sum<-exponential_rate(t,t,n,rentekurve)*cashflow[t+1,1] #p_01 column
   
   for(i in 1:n-1){
-    sum<-sum+2*exponential_rate(t,i*(N-t)/n+t,n,rentekurve)*cashflow[floor(i*(N-t)/n+t),1]
+    sum<-sum+2*exponential_rate(t,i*(N-t)/n+t,n,rentekurve)*cashflow[floor(i*(N-t)/n+t)+1,1]
     #Tager floor, da vi har en stepfunktion og ønsker venstre endepunkt
   }
   
-  sum<- exponential_rate(t,N,n,rentekurve)*cashflow[floor(N),1]+sum
+  sum<- exponential_rate(t,N,n,rentekurve)*cashflow[floor(N)+1,1]+sum
   
   reserve_output<- delta_x*0.5*sum
   
   return(reserve_output)
 }
 
-reserve_cashflow(1,1000,120,cashflow_data,forward_rates)
+reserve_cashflow(0,1000,120,cashflow_data,forward_rates)
 
-reserve(1,1000,120)
+reserve(0,1000,120)
 
 #-------------------------------------------------------------------------------
 #Funktionerne i semi-markov set-up
@@ -164,16 +165,32 @@ reserve(1,1000,120)
 
 
 #-------------------------------------------------------------------------------
-#Evaluering af reserve
+#Plot af cashflows
 #-------------------------------------------------------------------------------
 unitCashflows <- read_csv("data/unitCashflows.csv")
+
+plot = unitCashflows %>%
+  pivot_longer(!age, values_to = "value", names_to = "cashflow")
+
+new_labels <- c("cashflow_0" = "Expected cash flow (i=0)", "cashflow_1" = "Expected cash flow (i=1)")
+
+ggplot(plot, aes(age, value))+
+  geom_line() + 
+  scale_y_continuous(breaks = seq(0, 1.2, length.out = 7), limits = c(0, 1.2)) +
+  facet_grid(~cashflow, labeller = labeller(cashflow = new_labels))+
+  theme(axis.title.y=element_blank())
+
+#-------------------------------------------------------------------------------
+#Evaluering af reserve
+#-------------------------------------------------------------------------------
 spot_rate <- read_delim("data/FT RFR med VA pr. 16. maj.csv", 
                         delim = ";", escape_double = FALSE, trim_ws = TRUE)
 spot_rate<-na.omit(spot_rate)
 
-reserve_cashflow(1,1000,150,unitCashflows[,2],forward_rates)
-reserve_cashflow(1,1000,500,unitCashflows[,3],spot_rate)
+reserve_cashflow(0,1000,120,unitCashflows[,2],forward_rates)
+reserve_cashflow(1,1000,120,unitCashflows[,3],spot_rate)
 
 exponential_rate(1,2,1000,forward_rates)
 exponential_rate(1,2,1000,spot_rate)
+
   

@@ -64,11 +64,14 @@ plot_pre = cbind(tibble(age = seq(age + startTime, age + endTime, length.out =  
 plot = plot_pre %>%
   pivot_longer(!age, values_to = "value", names_to = "cashflow")
 
+new_labels <- c("cashflow_0" = "Expected cash flow (i=0)", "cashflow_1" = "Expected cash flow (i=1)")
+
 ggplot(plot, aes(age, value))+
   geom_line() + 
   scale_y_continuous(breaks = seq(0, 1.2, length.out = 7), limits = c(0, 1.2)) +
-  facet_wrap(~cashflow)
-#TODO remove y label and change title names to the same as article p. 26. Ahmad, Bladt, and Furrer, 2024
+  facet_grid(~cashflow, labeller = labeller(cashflow = new_labels))+
+  theme(axis.title.y=element_blank())
+#TODO remove y label and change title names to the same as article p. 26. Ahmad, Bladt, and Furrer, 2024 (DONE)
 
 
 
