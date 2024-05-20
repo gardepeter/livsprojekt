@@ -11,8 +11,8 @@ double mu01(double x) {
     return 0.0009687435;
   }
   
-  return exp(72.53851 - 10.66927* x + 0.53371 * pow(x, 2) - 0.012798 * pow(x, 3)
-             + 0.00014922 * pow(x, 4) - 0.00000068007 * pow(x, 6));
+  return exp(72.53851 - 10.66927* x + 0.53371 * pow(x, 2.) - 0.012798 * pow(x, 3.)
+             + 0.00014922 * pow(x, 4.) - 0.00000068007 * pow(x, 5.));
 }
 
 double mu10(double x, double d) {

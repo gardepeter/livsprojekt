@@ -80,7 +80,7 @@ bool isNotMultipla(double x, double y){
 //   }
 // }
 void saveCube(arma::cube& probabilities, int states){
-  for(int i = 0; i < states; i++){
+  for(int i = 0; i < states - 1; i++){
     for(int j = 0; j < states; j++){
       probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
     }
