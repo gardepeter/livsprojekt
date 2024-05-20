@@ -10,9 +10,9 @@ library(dplyr)
 #source("logic/helperFunctions.R")
 #Rcpp::sourceCpp("logic/cpp/helperFunctions.cpp")
 
+#-------------------------------------------------------------------------------
 #Plot of probabilities
-
-
+#-------------------------------------------------------------------------------
 probabilities <- read_csv("data/probabilities.csv")
 probabilities$time<-c(1:600)
 
@@ -63,8 +63,9 @@ probabilities_cashflow<-mutate(probabilities,cashflow=p_11*10000)
 
 ggplot(probabilities_cashflow,aes(x=time,y=cashflow))+
   geom_line()
-
-#Reserve
+#------------------------------------------------------------------------------
+#Beregning af reserve
+#------------------------------------------------------------------------------
 forward_rates <- read_delim("data/forward rates.csv", 
                             delim = ";", escape_double = FALSE, trim_ws = TRUE)
 colnames(forward_rates)<-c("year","rate")
@@ -75,7 +76,6 @@ rate<-approxfun(forward_rates$year , forward_rates$rate)
 #Når denne rate funktion bruges, skal man være opmærksom på, at det er års-tidsenhed,
 #så hvis du vil finde raten 30 måneder frem, skal du siger rate(30/12)
 
-#------------------------------------------------------------------------------
 #Følgende er lavet ud fra månedsniveau (derfor vi dividerer med 12)
 exponential<-function(t,s,n){
   delta_x<-(s-t)/n
@@ -111,9 +111,13 @@ reserve<-function(t,n,N){
 }
 
 #-------------------------------------------------------------------------------
-
-
 #Funktionerne med generelt cashflow og rentekurve. Sørg for at rentekurverne ser ens ud i opbygning
+#-------------------------------------------------------------------------------
+
+#cashflow data
+cashflow_data<-tibble("cashflow"=((rep(10000,600)*probabilities[,2])),
+                      time=c(1:600))
+
 exponential_rate<-function(t,s,n,rentekurve){
   rate<-approxfun(rentekurve$year , rentekurve$rate)
   delta_x<-(s-t)/n
@@ -130,9 +134,6 @@ exponential_rate<-function(t,s,n,rentekurve){
   
   return(exponential_output)
 }
-
-cashflow_data<-tibble("cashflow"=((rep(10000,600)*probabilities[,2])),
-                 time=c(1:600))
 
 reserve_cashflow<-function(t,n,N,cashflow,rentekurve){
   delta_x<-(N-t)/n
@@ -155,3 +156,24 @@ reserve_cashflow(1,1000,120,cashflow_data,forward_rates)
 
 reserve(1,1000,120)
 
+#-------------------------------------------------------------------------------
+#Funktionerne i semi-markov set-up
+#-------------------------------------------------------------------------------
+#... mangler data set-up
+
+
+
+#-------------------------------------------------------------------------------
+#Evaluering af reserve
+#-------------------------------------------------------------------------------
+unitCashflows <- read_csv("data/unitCashflows.csv")
+spot_rate <- read_delim("data/FT RFR med VA pr. 16. maj.csv", 
+                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
+spot_rate<-na.omit(spot_rate)
+
+reserve_cashflow(1,1000,150,unitCashflows[,2],forward_rates)
+reserve_cashflow(1,1000,500,unitCashflows[,3],spot_rate)
+
+exponential_rate(1,2,1000,forward_rates)
+exponential_rate(1,2,1000,spot_rate)
+  
