@@ -1,6 +1,7 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.hpp"
 const double EPSILON = 0.00001;
+const double RETIREMENT_AGE = 67.;
 
 double intensityOutOfState(int j, double s, double d, double age){
   double sum = 0;
@@ -112,20 +113,23 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::vec unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double gracePeriod, double age, int i, int j) {
+arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double gracePeriod, double age, int i, int j) {
   arma::cube probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
   
-  arma::mat P11 =  probabilities.slice(states * i + j);
+  arma::mat P =  probabilities.slice(states * i + j);
   
-  int cashflowLength = stepAmountPerTimeUnit * (endTime - startTime);
+  int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+  double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
   
-  arma::vec cashflow(cashflowLength);
-  for(int i = 0; i < cashflowLength; i++ ){
-    if(stepsFromZeroToStartDuration + i < gracePeriod + 1){
+  arma::mat cashflow(cashflowSteps, 2);
+  for(int i = 0; i < cashflowSteps; i++ ){
+    cashflow(i, 0) = i * stepAmountLength;
+    
+    if(stepsFromZeroToStartDuration + i < gracePeriod + 1 || age + i * stepAmountLength >= RETIREMENT_AGE){
       continue;
     }
-    cashflow(i) = P11(stepsFromZeroToStartDuration + i, i) - P11(gracePeriod + 1, i); // Strict ineq. as gracePeriod <= 3 month
+    cashflow(i, 1) = P(stepsFromZeroToStartDuration + i, i) - P(gracePeriod + 1, i); // Strict ineq. as gracePeriod <= 3 month
   }
   
   return cashflow;
