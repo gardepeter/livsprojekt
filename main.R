@@ -68,7 +68,7 @@ ggplot(probabilities_cashflow,aes(x=time,y=cashflow))+
 #------------------------------------------------------------------------------
 forward_rates <- read_delim("data/forward rates.csv", 
                             delim = ";", escape_double = FALSE, trim_ws = TRUE)
-colnames(forward_rates)<-c("year","rate")
+colnames(forward_rates)<-c("year","rate","P")
 
 #Kontinuert rate funktion. 
 rate<-approxfun(forward_rates$year , forward_rates$rate)
@@ -115,18 +115,16 @@ reserve<-function(t,n,N){
 #-------------------------------------------------------------------------------
 
 #cashflow data
-cashflow_data<-tibble("cashflow"=((rep(10000,600)*probabilities[,2])),
-                      time=c(1:600))
 
 exponential_rate<-function(t,s,n,rentekurve){
-  rate<-approxfun(rentekurve$year , rentekurve$rate) #hvis det går langsomt kan det være pga den her
+  rate<-approxfun(rentekurve$year , rentekurve$rate) #hvis det går langsomt kan det være pga den her. På årsniveau
   delta_x<-(s-t)/n
   
-  sum<-rate(t/12) #t/12 i raten for at få på års-niveau
+  sum<-rate(t) 
   for(i in 1:(n-1)){
-    sum<-sum+2*rate((i*delta_x+t)/12)
+    sum<-sum+2*rate((i*delta_x+t))
   }
-  sum<-sum+rate(s/12)
+  sum<-sum+rate(s)
   
   T_n<-delta_x*0.5*(sum)
   
@@ -134,27 +132,62 @@ exponential_rate<-function(t,s,n,rentekurve){
   
   return(exponential_output)
 }
+exponential_rate(0,5,10000,forward_rates)
+
+#-------------------------------------------------------------------------------
+#TEST
+#-------------------------------------------------------------------------------
+library(pracma)
+rate_cont<-approxfun(spot_rate$year , spot_rate$rate)
+
+discoutning<-function(t,s,n){
+return(exp(-trapzfun(rate_cont, t, s, maxit = 1000)$value))
+}
+discoutning(0,3,1000,spot_rate)
+
+unitCashflows_final = cbind(unitCashflows[,1] - 40, unitCashflows[,2])
+spot_rate_final = spot_rate[1:121,]
+spot = approxfun(spot_rate_final$year, spot_rate_final$rate)
+bond_price = sapply(seq(0, 50), function(s) exp(-trapzfun(spot, 0, s,maxit=1000)$value))
+bond_price_cont = approxfun(seq(0, 50), bond_price)
+
+
+reserve_cashflow_test<-function(n,N,cashflow){
+  
+  cashflow_fkt<-approxfun(x=c(0:299),y=as.matrix(cashflow))
+  
+  reserve<- trapzfun(bond_price_cont(v)*cashflow_fkt(v),0,299,maxit=1000)$vaæue
+  
+  return(reserve)
+}
+cashflow_fkt<-approxfun(x=c(0:299),y=as.matrix(unitCashflows$cashflow_1))
+trapzfun(cashflow_fkt(t)*discoutning(t,v,n), 0, 299, maxit = 10,tol = 0.01)
+cashflow_fkt(0)
+
+reserve_cashflow_test(0,100,120,unitCashflows[,3],spot_rate)
+reserve_cashflow(0,1000,120,unitCashflows[,3],forward_rates)
+nrow(c(0:299))
+nrow(unitCashflows[,3])
+#-------------------------------------------------------------------------------
+#TEST FÆRDIG
+#-------------------------------------------------------------------------------
 
 reserve_cashflow<-function(t,n,N,cashflow,rentekurve){
   delta_x<-(N-t)/n
   
-  sum<-exponential_rate(t,t,n,rentekurve)*cashflow[t+1,1] #p_01 column
+  sum<-exponential_rate(t/12,t/12,n,rentekurve)*cashflow[t+1,1]
   
   for(i in 1:n-1){
-    sum<-sum+2*exponential_rate(t,i*(N-t)/n+t,n,rentekurve)*cashflow[floor(i*(N-t)/n+t)+1,1]
+    sum<-sum+2*exponential_rate(t/12,(i*delta_x+t)/12,n,rentekurve)*cashflow[floor(i*delta_x+t)+1,1]
     #Tager floor, da vi har en stepfunktion og ønsker venstre endepunkt
   }
   
-  sum<- exponential_rate(t,N,n,rentekurve)*cashflow[floor(N)+1,1]+sum
+  sum<- exponential_rate(t/12,N/12,n,rentekurve)*cashflow[floor(N)+1,1]+sum
   
   reserve_output<- delta_x*0.5*sum
   
   return(reserve_output)
 }
-
-reserve_cashflow(0,10000,120,cashflow_data,forward_rates)
-
-reserve(0,1000,120)
 
 #-------------------------------------------------------------------------------
 #Funktionerne i semi-markov set-up
@@ -187,11 +220,15 @@ spot_rate <- read_delim("data/FT RFR med VA pr. 16. maj.csv",
 spot_rate<-na.omit(spot_rate)
 spot_rate<-mutate(spot_rate, rate=rate/100)
 
-reserve_cashflow(0,1000,120,unitCashflows[,3],forward_rates)
-reserve_cashflow(1,1000,120,unitCashflows[,3],spot_rate)
+reserve_cashflow(0,1000,299,unitCashflows[,3],forward_rates)
+reserve_cashflow(0,1000,120,unitCashflows[,3],spot_rate)
 
+unitCashflows[floor(120)+1,3]
 
-exponential_rate(0,24,100000,forward_rates)
-exponential_rate(1,2,1000,spot_rate)
-
-  
+#-------------------------------------------------------------------------------
+#Peters kode
+#-------------------------------------------------------------------------------
+spot = approxfun(spot_rate_final$year, spot_rate_final$rate)
+bond_price = sapply(seq(0, 50), function(x) exp(-integrate(spot, 0, x)$val))
+bond_price_cont = approxfun(seq(0, 50), bond_price)
+sum(unitCashflows_final$cashflow_0 * bond_price_cont(unitCashflows_final$age) ) * 25 / length(unitCashflows_final$cashflow_0)
