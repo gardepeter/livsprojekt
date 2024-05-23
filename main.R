@@ -52,9 +52,6 @@ plot_1 <- ggplot(probabilities_1_long, aes(x = time, y = probabilities, color = 
 
 grid.arrange(plot_0, plot_1, nrow = 1)
 
-
-ggplot(probabilities_cashflow,aes(x=time,y=cashflow))+
-  geom_line()
 #-------------------------------------------------------------------------------
 #Plot af cashflows
 #-------------------------------------------------------------------------------
@@ -99,4 +96,3 @@ return(output)
 }
 
 reserve(maxtime=25,interest_rate=spot_rate_final,cashflow_data=unitCashflows_final)
-
