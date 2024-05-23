@@ -81,6 +81,41 @@ void saveCube(arma::cube& probabilities, int states){
   }
 }
 
+// // [[Rcpp::depends(RcppArmadillo)]]
+// // [[Rcpp::export]]
+// arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, double age, int i, int j) {
+//   double stepLength = 1. / (double)stepAmountPerTimeUnit;
+//   
+//   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
+//   int nrow = stepsFromZeroToStartDuration + stepAmountPerTimeUnit * (endTime - startTime);
+//   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+//   
+//   arma::cube probabilities(nrow, 1, states * states);
+//   boundaryCondition(probabilities, stepsFromZeroToStartDuration );
+//   
+//   arma::mat cashflow(cashflowSteps, 2);
+//   for(int iteration = 0; iteration < cashflowSteps; iteration++){
+//     arma::cube probabilitiesTemp;
+//     probabilitiesTemp.slice(iteration) = probabilities.slice(iteration);
+//     
+//     
+//     RK1Step(probabilitiesTemp, startTime, startDuration, iteration, stepLength, states, age);
+//     
+//     probabilitiesTemp
+//     
+//     if(stepsFromZeroToStartDuration + iteration < gracePeriod + 1 || age + iteration * stepLength >= RETIREMENT_AGE){
+//       continue;
+//     }
+//     
+//     cashflow(iteration, 0) = iteration * stepLength;
+//     cashflow(iteration, 1) = probabilitiesTemp(stepsFromZeroToStartDuration + iteration, iteration) 
+//                               - probabilitiesTemp(gracePeriod + 1, iteration); // Strict ineq. as gracePeriod <= 3 month
+//     
+//   }
+//   
+//   return cashflow;
+// }
+
 arma::cube RK1_Cpp(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age) {
   double stepLength = 1. / (double)stepAmountPerTimeUnit;
   
@@ -123,13 +158,13 @@ arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuratio
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
   
   arma::mat cashflow(cashflowSteps, 2);
-  for(int i = 0; i < cashflowSteps; i++ ){
-    cashflow(i, 0) = i * stepAmountLength;
+  for(int n = 0; n < cashflowSteps; n++ ){
+    cashflow(n, 0) = n * stepAmountLength;
     
-    if(stepsFromZeroToStartDuration + i < gracePeriod + 1 || age + i * stepAmountLength >= RETIREMENT_AGE){
+    if(stepsFromZeroToStartDuration + n < gracePeriod + 1 || age + n * stepAmountLength >= RETIREMENT_AGE){
       continue;
     }
-    cashflow(i, 1) = P(stepsFromZeroToStartDuration + i, i) - P(gracePeriod + 1, i); // Strict ineq. as gracePeriod <= 3 month
+    cashflow(n, 1) = P(stepsFromZeroToStartDuration + n, n) - P(gracePeriod + 1, n); // Strict ineq. as gracePeriod <= 3 month
   }
   
   return cashflow;
