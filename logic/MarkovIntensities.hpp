@@ -1,22 +1,15 @@
 #ifndef MarkovIntensities
 #define MarkovIntensities
+#include "SemiMarkovIntensities.hpp"
 
 const int states = 3;
 
-double mu01(double x) {
-  return 0.1 * x + 0.5;
-}
-
-double mu02(double x) {
-  return 0.05 * x + 0.5;
-}
-
 double mu10(double x) {
-  return 0.15 * x + 1;
+  return exp(0.73724137-0.07162389*x);
 }
 
 double mu12(double x) {
-  return 0.75 * x + 1;
+  return exp(-7.14108933+0.06785069*x);
 }
 
 
