@@ -1,7 +1,10 @@
 spg:
   Forward rate (meget høj) vs spot rate (normal)
-  flere analyser
-  dv01 
+  skal vi lave flere analyser?
+  dv01 ?
+  Analyse af poisson regression?
+  
+  
   
   
 Todo (Initilized / In progress / Done): 
@@ -13,7 +16,7 @@ Todo (Initilized / In progress / Done):
   iii) Plot sandsynligheder ingen varigheder - Done 
         1) Plot sandsynligheder varigheder, chosen durations - initilized
    iv) Beregn endeligt cash flow (20 årig) and plot - initilized
-    v) Fitning af poisson GLM (markov int.) - initilized 
+    v) Fitning af poisson GLM (markov int.) - Done 
    vi) DV01 - In progress 
   vii) Beregn reserver både markov og semi markov - In progress
- viii) Agg. markov connection to markov (micro states) - initilized (high importance)
+ viii) Agg. markov connection to markov (micro states) - Done
