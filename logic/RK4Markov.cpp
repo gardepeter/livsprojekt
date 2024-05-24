@@ -108,7 +108,8 @@ arma::rowvec matrixToVector(arma::mat& matrix, int states){
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 arma::mat RK4(int startTime, int endTime, int stepAmount) {
-  //loadCsvFile(); 
+  loadCsvFile();
+  std::cout << mu02Improvement(20,0);
   if(endTime <= startTime || stepAmount <= 1){
     return arma::mat();
   }

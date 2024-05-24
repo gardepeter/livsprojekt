@@ -1,5 +1,6 @@
 #ifndef MarkovIntensities
 #define MarkovIntensities
+
 //#include "SemiMarkovIntensities.hpp"
 const int states=3;
 
@@ -15,18 +16,26 @@ arma::mat improvementData(120,120);
 void loadCsvFile(){
   // Alder,Kvinder,Mænd,Kvinder_levetids_forberinger,Mænd_levetids_forbedringer
   improvementData.load("../livsprojekt/data/deathIntensity.csv", arma::csv_ascii);
-  std::cout << improvementData(0,1); 
+  //std::cout << improvementData(0,1); 
 }
-double improvement(double age , double time , arma::mat &matrix){
-  double uniSexImprovementFactor=(matrix((int) floor(age),4)+matrix((int) floor(age),5))/2;
+double improvement(double age , double time ){
+
+  //double uniSexImprovementFactor=(improvementData((int) floor(age)-1,3)+improvementData((int) floor(age)-1,4))/2;
+  
+  //improvement for Female
+  double improvementFactorMale = improvementData((int) floor(age)-1,3);
+  //improvement for male
+  double improvementFactorFemale = improvementData((int) floor(age)-1,4);
+  
+  //the actual factor we multiply on the intensity
+  improvementFactorMale  = pow(1-improvementFactorMale,time+yearsFromToday);
+  improvementFactorFemale = pow(1-improvementFactorFemale, time + yearsFromToday);
   
   // we assume we are in 2024 and the data is from 2022 so we add 2 in the powerfactor
-  return pow(uniSexImprovementFactor,time+yearsFromToday); 
+  return (improvementFactorMale+improvementFactorFemale);
+  
+  //return pow(1-uniSexImprovementFactor,time+yearsFromToday); 
 }
-
-
-
-
 
 double mu10(double x) {
   return exp(0.73724137-0.07162389*x);
@@ -37,6 +46,7 @@ double mu12(double x) {
 }
 
 double mu02(double x) {
+  //return (improvementData((int) floor(x)-1,1)+ improvementData((int) floor(x)-1,2));
   return 0.05 * x + 0.5;
 }
 
@@ -44,8 +54,19 @@ double mu01(double x) {
   return 0.1 * x + 0.5;
 }
 
-double mu02Improvement(double age , double time , arma::mat &matrix){
-  return mu02(age)*improvement(age,time, matrix);
+double mu02Improvement(double age , double time){
+  // Alder,Kvinder,Mænd,Kvinder_levetids_forberinger,Mænd_levetids_forbedringer
+  //std::cout<< mu02(age);
+  //std::cout << improvement(age,time);
+  double improvementFactorMale = improvementData((int) floor(age),4);
+  //improvement for male
+  double improvementFactorFemale = improvementData((int) floor(age),3);
+  
+  //the actual factor we multiply on the intensity
+  improvementFactorMale  = pow(1-improvementFactorMale,time+yearsFromToday);
+  improvementFactorFemale = pow(1-improvementFactorFemale, time + yearsFromToday);
+  
+  return (improvementData((int) floor(age),2)*improvementFactorMale+improvementData((int) floor(age),1)*improvementFactorFemale)/2;
 }
 
 double mu(int i, int j, double x){
@@ -67,6 +88,26 @@ double mu(int i, int j, double x){
   return 0.;
 }
 
+//overloading when we have improvements
+double muImprovement(int i, int j, double x, double time){
+  if(i == 0 && j == 1){
+    return mu01(x);
+  }
+  if(i == 0 && j == 2){
+    return mu02Improvement(x, time);
+  }
+  if(i == 1 && j == 0){
+    return mu10(x);
+  }
+  if(i == 1 && j == 2){
+    return mu12(x);
+  }
+  if(i == 2 && ( j == 1 || j == 2)){
+    return 0.;
+  }
+  return 0.;
+}
+/*
 //load the file
 int countLines(const std::string &filename) {
   std::ifstream file(filename);
@@ -120,6 +161,6 @@ arma::mat readCsvToMatrix(const std::string &filename) {
   
   return matrix;
 }
-
+*/
 
 #endif
