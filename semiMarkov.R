@@ -1,22 +1,28 @@
 #****************************************************
 #*************** SEE semiMarkovValidation.R **********
 #*#***************************************************
-library(tidyverse)
+# library(tidyverse)
 options(scipen =99)
 Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 
 age = 20
 startTime = 0.0
-endTime = 50.0
-stepAmountPerTimeUnit = 12 #WARNING very large amount of stepAmounts!
+endTime = 50.0 #50.
+stepAmountPerTimeUnit = 52 #52
 startIncrement = 0
 karensPeriod = 3
 startDuration = startIncrement / stepAmountPerTimeUnit
 
 # cashflow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, karensPeriod, age, 0, 1)
-# write.csv(cashflow, "unitCashflow20YearOldActive.csv", row.names = F)
-# RK1(startTime, startDuration, endTime, stepAmountPerTimeUnit, age)
-# p00 = readr::read_csv("p00.csv", col_names = F) #correct? [1,3]?
+# rate_cont = approxfun(unlist(spot_rate[,1]), unlist(spot_rate[,2]))
+# bond_price = sapply(seq(0, 50), function(x) exp(-integrate(rate_cont, 0, x)$val))
+# bond_price_cont = approxfun(seq(0, 50), bond_price)
+# integrand = approxfun(unlist(cashflow[,1]),unlist(cashflow[,2]) * bond_price_cont(unlist(cashflow[,1])))
+# integrate(integrand, 0, 49.916)$val
 
-unitCashflowDisabilityWithKaren = 
-  RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+system.time({
+  # cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+  cashflow_fast = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+})
+
+# sum(cashflow_slow - cashflow_fast) == 0
