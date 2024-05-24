@@ -69,6 +69,12 @@ void boundaryCondition(arma::cube& probabilities, int locationOfOne){
   }
 }
 
+void boundaryCondition(arma::mat& probabilities, int locationOfOne){
+  for(int dim = 0; dim < states; dim++){
+    probabilities(locationOfOne, (states + 1) * dim) = 1.;
+  }
+}
+
 bool isNotMultipla(double x, double y){
   return abs(x*y - trunc(x*y)) >= EPSILON;
 }
@@ -83,36 +89,48 @@ void saveCube(arma::cube& probabilities, int states){
 
 // // [[Rcpp::depends(RcppArmadillo)]]
 // // [[Rcpp::export]]
-// arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, double age, int i, int j) {
+// arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
 //   double stepLength = 1. / (double)stepAmountPerTimeUnit;
-//   
+// 
 //   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
-//   int nrow = stepsFromZeroToStartDuration + stepAmountPerTimeUnit * (endTime - startTime);
 //   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
-//   
-//   arma::cube probabilities(nrow, 1, states * states);
+//   int nrow = stepsFromZeroToStartDuration + cashflowSteps;
+// 
+//   arma::mat probabilities(nrow, states * states);
 //   boundaryCondition(probabilities, stepsFromZeroToStartDuration );
-//   
+// 
 //   arma::mat cashflow(cashflowSteps, 2);
 //   for(int iteration = 0; iteration < cashflowSteps; iteration++){
-//     arma::cube probabilitiesTemp;
-//     probabilitiesTemp.slice(iteration) = probabilities.slice(iteration);
+//     arma::cube probabilitiesTemp(stepsFromZeroToStartDuration + iteration + 1, cashflowSteps, states * states);
 //     
-//     
+//     for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
+//         for(int i_state = 0; i_state < states; i_state++){
+//           for(int j_state = 0; j_state < states; j_state++){
+//             probabilitiesTemp(row, iteration, states * i_state + j_state) = probabilities(row, states * i_state + j_state);
+//         }
+//       }
+//     }
+// 
 //     RK1Step(probabilitiesTemp, startTime, startDuration, iteration, stepLength, states, age);
 //     
-//     probabilitiesTemp
+//     for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
+//       for(int i_state = 0; i_state < states; i_state++){
+//         for(int j_state = 0; j_state < states; j_state++){
+//            probabilities(row, states * i_state + j_state) = probabilitiesTemp(row, iteration + 1, states * i_state + j_state);
+//         }
+//       }
+//     }
 //     
 //     if(stepsFromZeroToStartDuration + iteration < gracePeriod + 1 || age + iteration * stepLength >= RETIREMENT_AGE){
 //       continue;
 //     }
-//     
+// 
 //     cashflow(iteration, 0) = iteration * stepLength;
-//     cashflow(iteration, 1) = probabilitiesTemp(stepsFromZeroToStartDuration + iteration, iteration) 
-//                               - probabilitiesTemp(gracePeriod + 1, iteration); // Strict ineq. as gracePeriod <= 3 month
-//     
+//     cashflow(iteration, 1) = probabilitiesTemp(stepsFromZeroToStartDuration + iteration, iteration, i * states + j)
+//                               - probabilitiesTemp(gracePeriod + 1, iteration, i * states + j); // Strict ineq. as gracePeriod <= 3 month
+// 
 //   }
-//   
+// 
 //   return cashflow;
 // }
 

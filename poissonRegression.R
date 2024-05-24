@@ -14,7 +14,7 @@ endAge = 70
 mu = tibble(age = startAge:endAge, 
               mu10 = predict(reactivationGLM, tibble(Alder = startAge:endAge, E = 1), type = "response"),
               mu12 = predict(deathGivenDisabilityGLM, tibble(Alder = startAge:endAge, E = 1), type = "response"))
-write.csv(mu, "markovIntensitiesFromSemiMarkovData.csv", row.names = F)
+# write.csv(mu, "markovIntensitiesFromSemiMarkovData.csv", row.names = F)
 
 ###################### ANALISYS OF MODEL ###############################
 
