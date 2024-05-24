@@ -75,6 +75,12 @@ void boundaryCondition(arma::sp_mat& probabilities, int locationOfOne){
   }
 }
 
+void boundaryCondition(arma::mat& probabilities, int locationOfOne){
+  for(int dim = 0; dim < states; dim++){
+    probabilities(locationOfOne, (states + 1) * dim) = 1.;
+  }
+}
+
 bool isNotMultipla(double x, double y){
   return abs(x*y - trunc(x*y)) >= EPSILON;
 }
