@@ -1,14 +1,14 @@
 #****************************************************
 #*************** SEE semiMarkovValidation.R **********
 #*#***************************************************
-library(tidyverse)
+# library(tidyverse)
 options(scipen =99)
 Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 
 age = 20
 startTime = 0.0
-endTime = 50.0
-stepAmountPerTimeUnit = 2
+endTime = 50.0 #50.
+stepAmountPerTimeUnit = 52 #52
 startIncrement = 0
 karensPeriod = 3
 startDuration = startIncrement / stepAmountPerTimeUnit
@@ -24,3 +24,5 @@ system.time({
   # cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
   cashflow_fast = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
 })
+
+# sum(cashflow_slow - cashflow_fast) == 0

@@ -112,9 +112,9 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
     - probabilities(gracePeriod + 1, states * i + j); // Strict ineq. as gracePeriod <= 3 month
   }
   
-  for(int iteration = 1; iteration < cashflowSteps; iteration++){ //cashflowSteps
+  for(int iteration = 1; iteration < cashflowSteps; iteration++){ 
     arma::field<arma::sp_mat> probabilitiesTemp(states * states);
-    probabilitiesTemp.for_each( [&](arma::sp_mat& X) { X.set_size(stepsFromZeroToStartDuration + iteration + 1, cashflowSteps); } );
+    probabilitiesTemp.for_each( [&](arma::sp_mat& X) { X.set_size(stepsFromZeroToStartDuration + iteration + 1, iteration + 1); } );
 
     for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
         for(int i_state = 0; i_state < states; i_state++){
