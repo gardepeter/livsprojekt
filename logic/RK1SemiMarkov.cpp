@@ -17,11 +17,11 @@ double intensityOutOfState(int j, double s, double d, double age){
 }
 
 // d=x*h
-double leftIntegral(arma::cube& probabilities, double t0, int i, int j, double s, int d_step, double stepLength, int iteration, double age){ 
+double leftIntegral(arma::field<arma::sp_mat>& probabilities, double t0, int i, int j, double s, int d_step, double stepLength, int iteration, double age){ 
   double trapezoidalSum=0;
   for(int n=1; n <= d_step; n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
-    trapezoidalSum += 0.5*(probabilities(n, iteration, states * i + j) - probabilities(n-1, iteration, states * i + j))
+    trapezoidalSum += 0.5*(probabilities(states * i + j)(n, iteration) - probabilities(states * i + j)(n-1, iteration))
     *(intensityOutOfState(j,s,n*stepLength, age)+intensityOutOfState(j,s,stepLength*(n-1), age));
   }
   return trapezoidalSum;
@@ -29,17 +29,17 @@ double leftIntegral(arma::cube& probabilities, double t0, int i, int j, double s
 
 //TODO // the variable d is not in use and could be removed 
 // the function should work as long as u=x*h and i have not checked if it works if not 
-double trapezoidalRightEstimation(arma::cube& probabilities, double t0, double u, int i, int j, int l, double s, double stepLength, int iteration, double age){ 
+double trapezoidalRightEstimation(arma::field<arma::sp_mat>& probabilities, double t0, double u, int i, int j, int l, double s, double stepLength, int iteration, double age){ 
   double trapezoidalSum=0;
   for(int n=1; n <= round((u+s-t0)/stepLength); n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
-    trapezoidalSum += 0.5*(probabilities(n, iteration, states * i + l) - probabilities(n-1, iteration, states * i + l))
+    trapezoidalSum += 0.5*(probabilities(states * i + l)(n, iteration) - probabilities(states * i + l)(n-1, iteration))
     *(mu(l,j,s,n*stepLength, age)+mu(l,j,s,stepLength*(n-1), age));
   }
   return trapezoidalSum;
 }
 
-double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i, int j, double s, double stepLength, int iteration, double age){
+double rightSumOfIntegrals(arma::field<arma::sp_mat>& probabilities, double t0, double u, int i, int j, double s, double stepLength, int iteration, double age){
   double rightSumResult = 0;
   for(int l = 0; l < states; l++){
     if(l == j){
@@ -50,22 +50,28 @@ double rightSumOfIntegrals(arma::cube& probabilities, double t0, double u, int i
   return rightSumResult;
 }
 
-void RK1Step(arma::cube& probabilities, double startTime, double startDuration, int iteration, double stepLength, int states, double age){
+void RK1Step(arma::field<arma::sp_mat>& probabilities, double startTime, double startDuration, int iteration, double stepLength, int states, double age){
   for(int i = 0; i < states; i++){
     for(int j = 0; j < states; j++){
       double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration - 1, age);
       
       for(int d_step = 1; d_step <= (int)floor(startDuration/stepLength) + iteration; d_step++){
-        probabilities(d_step, iteration, states * i + j) = probabilities(d_step - 1, iteration - 1, states * i + j)
+        probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
           + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
       }
     }
   }
 }
 
-void boundaryCondition(arma::cube& probabilities, int locationOfOne){
+void boundaryCondition(arma::field<arma::sp_mat>& probabilities, int locationOfOne){
   for(int dim = 0; dim < states; dim++){
-    probabilities(locationOfOne, 0, (states + 1) * dim) = 1.;
+    probabilities((states + 1) * dim)(locationOfOne, 0) = 1.;
+  }
+}
+
+void boundaryCondition(arma::sp_mat& probabilities, int locationOfOne){
+  for(int dim = 0; dim < states; dim++){
+    probabilities(locationOfOne, (states + 1) * dim) = 1.;
   }
 }
 
@@ -73,56 +79,76 @@ bool isNotMultipla(double x, double y){
   return abs(x*y - trunc(x*y)) >= EPSILON;
 }
 
-void saveCube(arma::cube& probabilities, int states){
+void saveCube(arma::field<arma::sp_mat>& probabilities, int states){
   for(int i = 0; i < states - 1; i++){
     for(int j = 0; j < states; j++){
-      probabilities.slice(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
+      probabilities(states * i + j).save("p" + std::to_string(i) + std::to_string(j) + ".csv", arma::csv_ascii);
     }
   }
 }
 
-// // [[Rcpp::depends(RcppArmadillo)]]
-// // [[Rcpp::export]]
-// arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, double age, int i, int j) {
-//   double stepLength = 1. / (double)stepAmountPerTimeUnit;
-//   
-//   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
-//   int nrow = stepsFromZeroToStartDuration + stepAmountPerTimeUnit * (endTime - startTime);
-//   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
-//   
-//   arma::cube probabilities(nrow, 1, states * states);
-//   boundaryCondition(probabilities, stepsFromZeroToStartDuration );
-//   
-//   arma::mat cashflow(cashflowSteps, 2);
-//   for(int iteration = 0; iteration < cashflowSteps; iteration++){
-//     arma::cube probabilitiesTemp;
-//     probabilitiesTemp.slice(iteration) = probabilities.slice(iteration);
-//     
-//     
-//     RK1Step(probabilitiesTemp, startTime, startDuration, iteration, stepLength, states, age);
-//     
-//     probabilitiesTemp
-//     
-//     if(stepsFromZeroToStartDuration + iteration < gracePeriod + 1 || age + iteration * stepLength >= RETIREMENT_AGE){
-//       continue;
-//     }
-//     
-//     cashflow(iteration, 0) = iteration * stepLength;
-//     cashflow(iteration, 1) = probabilitiesTemp(stepsFromZeroToStartDuration + iteration, iteration) 
-//                               - probabilitiesTemp(gracePeriod + 1, iteration); // Strict ineq. as gracePeriod <= 3 month
-//     
-//   }
-//   
-//   return cashflow;
-// }
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
+  double stepLength = 1. / (double)stepAmountPerTimeUnit;
 
-arma::cube RK1_Cpp(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age) {
+  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
+  int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+  int nrow = stepsFromZeroToStartDuration + cashflowSteps;
+  
+  arma::sp_mat probabilities(nrow, states * states);
+  boundaryCondition(probabilities, stepsFromZeroToStartDuration );
+  
+  arma::mat cashflow(cashflowSteps, 2);
+  cashflow(0, 0) = 0.;
+  if(stepsFromZeroToStartDuration >= gracePeriod + 1 && age < RETIREMENT_AGE){
+    cashflow(0, 1) = probabilities(stepsFromZeroToStartDuration, states * i + j)
+    - probabilities(gracePeriod + 1, states * i + j); // Strict ineq. as gracePeriod <= 3 month
+  }
+  
+  for(int iteration = 1; iteration < cashflowSteps; iteration++){ //cashflowSteps
+    arma::field<arma::sp_mat> probabilitiesTemp(states * states);
+    probabilitiesTemp.for_each( [&](arma::sp_mat& X) { X.set_size(stepsFromZeroToStartDuration + iteration + 1, cashflowSteps); } );
+
+    for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
+        for(int i_state = 0; i_state < states; i_state++){
+          for(int j_state = 0; j_state < states; j_state++){
+            probabilitiesTemp(states * i_state + j_state)(row, iteration - 1) = probabilities(row, states * i_state + j_state);
+        }
+      }
+    }
+   
+    RK1Step(probabilitiesTemp, startTime, startDuration, iteration, stepLength, states, age);
+
+    for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
+      for(int i_state = 0; i_state < states; i_state++){
+        for(int j_state = 0; j_state < states; j_state++){
+           probabilities(row, states * i_state + j_state) = probabilitiesTemp(states * i_state + j_state)(row, iteration);
+        }
+      }
+    }
+    
+    cashflow(iteration, 0) = iteration * stepLength;
+    
+    if(stepsFromZeroToStartDuration + iteration >= gracePeriod + 1 && age + iteration * stepLength < RETIREMENT_AGE){
+      cashflow(iteration, 1) = probabilities(stepsFromZeroToStartDuration + iteration, states * i + j)
+      - probabilities(gracePeriod + 1, states * i + j); // Strict ineq. as gracePeriod <= 3 month
+    }
+    
+  }
+
+  return cashflow;
+}
+
+arma::field<arma::sp_mat> RK1_Cpp(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age) {
   double stepLength = 1. / (double)stepAmountPerTimeUnit;
   
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
   int nrow = stepsFromZeroToStartDuration + stepAmountPerTimeUnit * (endTime - startTime);
   int ncol = stepAmountPerTimeUnit * (endTime - startTime);
-  arma::cube probabilities(nrow, ncol, states * states);
+  
+  arma::field<arma::sp_mat> probabilities(states * states);
+  probabilities.for_each( [&](arma::sp_mat& X) { X.set_size(nrow, ncol); } );
   
   boundaryCondition(probabilities, stepsFromZeroToStartDuration );
   
@@ -140,7 +166,7 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
     return -1;
   }
   
-  arma::cube probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
+  arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
   
   saveCube(probabilities, states);
   return 0;
@@ -149,9 +175,9 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double gracePeriod, double age, int i, int j) {
-  arma::cube probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
+  arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
   
-  arma::mat P =  probabilities.slice(states * i + j);
+  arma::sp_mat P =  probabilities(states * i + j);
   
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
   double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
@@ -169,9 +195,3 @@ arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuratio
   
   return cashflow;
 }
-
-
-
-
-
-
