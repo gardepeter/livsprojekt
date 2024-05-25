@@ -89,18 +89,18 @@ double mu(int i, int j, double x){
 }
 
 //overloading when we have improvements
-double muImprovement(int i, int j, double x, double time){
+double muImprovement(int i, int j, double x, double age){
   if(i == 0 && j == 1){
-    return mu01(x);
+    return mu01(age + x);
   }
   if(i == 0 && j == 2){
-    return mu02Improvement(x, time);
+    return mu02Improvement(age, x);
   }
   if(i == 1 && j == 0){
-    return mu10(x);
+    return mu10(age + x);
   }
   if(i == 1 && j == 2){
-    return mu12(x);
+    return mu12(age + x);
   }
   if(i == 2 && ( j == 1 || j == 2)){
     return 0.;
