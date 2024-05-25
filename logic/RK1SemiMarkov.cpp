@@ -1,11 +1,12 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.hpp"
 #include <windows.h> 
+#include <RcppThread.h>
 
 const double EPSILON = 0.00001;
 const double RETIREMENT_AGE = 67.;
 
-double intensityOutOfState(int j, double s, double d, double age){
+double intensityOutOfState(int j, double s, double d, double age, double t0){
   double sum = 0;
   
   for(int k = 0; k < states; k++){
@@ -24,7 +25,7 @@ double leftIntegral(arma::field<arma::sp_mat>& probabilities, double t0, int i, 
   for(int n=1; n <= d_step; n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
     trapezoidalSum += 0.5*(probabilities(states * i + j)(n, iteration) - probabilities(states * i + j)(n-1, iteration))
-    *(intensityOutOfState(j, s, n*stepLength, age)+intensityOutOfState(j, s, stepLength*(n-1), age));
+    *(intensityOutOfState(j, s, n*stepLength, age, t0)+intensityOutOfState(j, s, stepLength*(n-1), age, t0));
   }
   return trapezoidalSum;
 }
@@ -57,10 +58,15 @@ void RK1Step(arma::field<arma::sp_mat>& probabilities, double startTime, double 
     for(int j = 0; j < states; j++){
       double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration - 1, age);
       
-      for(int d_step = 1; d_step <= (int)floor(startDuration/stepLength) + iteration; d_step++){
+      // for(int d_step = 1; d_step <= (int)floor(startDuration/stepLength) + iteration; d_step++){
+      //   probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
+      //     + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
+      // }
+      
+      RcppThread::parallelFor(1, (int)floor(startDuration/stepLength) + iteration + 1, [&] (size_t d_step) {
         probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
-          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
-      }
+        + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
+      });
     }
   }
 }
@@ -110,6 +116,7 @@ void progressBar(double percent){
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
 arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
   loadCsvFile();
@@ -132,6 +139,11 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
   
   try{
     for(int iteration = 1; iteration < cashflowSteps; iteration++){ 
+      cashflow(iteration, 0) = iteration * stepLength;
+      if(age + iteration * stepLength >= RETIREMENT_AGE){
+        break;
+      }
+      
       arma::field<arma::sp_mat> probabilitiesTemp(states * states);
       probabilitiesTemp.for_each( [&](arma::sp_mat& X) { X.set_size(stepsFromZeroToStartDuration + iteration + 1, iteration + 1); } );
   
@@ -153,14 +165,12 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
         }
       }
       
-      cashflow(iteration, 0) = iteration * stepLength;
-      
-      if(stepsFromZeroToStartDuration + iteration >= gracePeriodSteps && age + iteration * stepLength < RETIREMENT_AGE){
+      if(stepsFromZeroToStartDuration + iteration >= gracePeriodSteps){
         cashflow(iteration, 1) = probabilities(stepsFromZeroToStartDuration + iteration, states * i + j)
         - probabilities(gracePeriodSteps, states * i + j); // Strict ineq. as gracePeriod <= 3 month
       }
       
-      if( iteration % (int)round( cashflowSteps * 0.05 ) == 0){
+      if( iteration % (int)round( cashflowSteps * 0.01 ) == 0){
         progressBar((double)iteration / (double)cashflowSteps);
       }
     }
@@ -197,6 +207,7 @@ arma::field<arma::sp_mat> RK1_Cpp(double startTime, double startDuration, double
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
 int RK1(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age) {
   if( endTime <= startTime ||  stepAmountPerTimeUnit <= 1 || isNotMultipla(startDuration, (double)stepAmountPerTimeUnit)){
@@ -211,6 +222,7 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
 arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
   loadCsvFile();
@@ -225,8 +237,11 @@ arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuratio
   arma::mat cashflow(cashflowSteps, 2);
   for(int n = 0; n < cashflowSteps; n++ ){
     cashflow(n, 0) = n * stepAmountLength;
+    if(age + n * stepAmountLength >= RETIREMENT_AGE){
+      break;
+    }
     
-    if(stepsFromZeroToStartDuration + n < gracePeriodSteps || age + n * stepAmountLength >= RETIREMENT_AGE){
+    if(stepsFromZeroToStartDuration + n < gracePeriodSteps){
       continue;
     }
     cashflow(n, 1) = P(stepsFromZeroToStartDuration + n, n) - P(gracePeriodSteps, n); 

@@ -1,6 +1,8 @@
 #include "RcppArmadillo.h"
 #include "MarkovIntensities.hpp"
 
+const int RETIREMENT_AGE = 67;
+
 double intensityOutOfState(int j, double s, double age){
   double sum = 0;
   
@@ -145,5 +147,32 @@ arma::mat RK1(int startTime, int endTime, int stepAmountPerTimeUnit, double age)
   return probabilitySaved;
 }
 
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat markovUnitCashflowDisabilityWithKarens(int startTime, double startDuration, int endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
+  loadCsvFile();
+  arma::mat probabilities = RK1(startTime, endTime, stepAmountPerTimeUnit, age);
+
+  int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+  double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
+  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
+  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1; // Strict ineq. as gracePeriod <= 1/4
+
+  arma::mat cashflow(cashflowSteps, 2);
+  for(int n = 0; n < cashflowSteps; n++ ){
+    cashflow(n, 0) = n * stepAmountLength;
+    
+    if(age + n * stepAmountLength >= RETIREMENT_AGE){
+      break;
+    }
+    
+    if(stepsFromZeroToStartDuration + n < gracePeriodSteps ){
+      continue;
+    }
+    cashflow(n, 1) = probabilities(n, states * i + j);
+  }
+
+  return cashflow;
+}
 
 
