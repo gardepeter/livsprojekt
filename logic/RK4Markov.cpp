@@ -108,20 +108,15 @@ arma::mat RK4(int startTime, int endTime, int stepAmount, double age) {
 }
 
 arma::mat RK1Step(arma::mat& probabilities, double t, double stepLength, int states, double age){
-  arma::mat k1(states, states);
-  arma::mat k2(states, states);
-  arma::mat k3(states, states);
-  arma::mat k4(states, states);
+  arma::mat delta(states, states);
   
   for(int i = 0; i < states; i++){
     for(int j = 0; j < states; j++){
-      k1(i , j) = stepLength * transformationKolmogorov(probabilities, i, j, t, age);
+      delta(i , j) = transformationKolmogorov(probabilities, i, j, t, age);
     }
   }
   
-  arma::mat newProbabilities = probabilities +k1;
-  
-  return newProbabilities;
+  return probabilities + stepLength * delta;
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]

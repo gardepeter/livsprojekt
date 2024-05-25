@@ -50,11 +50,11 @@ startTime = 0.0
 endTime = 25.0
 stepAmountPerTimeUnit = 12
 startIncrement = c(0, 1) * stepAmountPerTimeUnit
-karensPeriod = 3
+karensPeriod = 1/4
 startDuration = startIncrement / stepAmountPerTimeUnit
 
-cashflow_0 = unitCashflowDisabilityWithKarens(startTime, startDuration[1], endTime, stepAmountPerTimeUnit, karensPeriod, age, 1, 1)
-cashflow_1 = unitCashflowDisabilityWithKarens(startTime, startDuration[2], endTime, stepAmountPerTimeUnit, karensPeriod, age, 1, 1)
+cashflow_0 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration[1], endTime, stepAmountPerTimeUnit, age, karensPeriod, 1, 1)
+cashflow_1 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration[2], endTime, stepAmountPerTimeUnit, age, karensPeriod,  1, 1)
 
 plot_pre = tibble(age = cashflow_0[,1] + age, cashflow_0 = cashflow_0[,2], cashflow_1 = cashflow_1[, 2]) 
 #write.csv(plot_pre, "unitCashflows.csv", row.names = F)
