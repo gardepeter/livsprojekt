@@ -1,5 +1,7 @@
 #include "RcppArmadillo.h"
 #include "SemiMarkovIntensities.hpp"
+#include <windows.h> 
+
 const double EPSILON = 0.00001;
 const double RETIREMENT_AGE = 67.;
 
@@ -93,6 +95,20 @@ void saveCube(arma::field<arma::sp_mat>& probabilities, int states){
   }
 }
 
+void progressBar(double percent){
+  int barWidth = 70;
+  
+  std::cout << "[";
+  int pos = barWidth * percent;
+  for (int i = 0; i < barWidth; ++i) {
+    if (i < pos) std::cout << "=";
+    else if (i == pos) std::cout << ">";
+    else std::cout << " ";
+  }
+  std::cout << "] " << int(percent * 100.0) << " %\r";
+  std::cout.flush();
+}
+
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
@@ -144,6 +160,9 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
         - probabilities(gracePeriodSteps, states * i + j); // Strict ineq. as gracePeriod <= 3 month
       }
       
+      if( iteration % (int)round( cashflowSteps * 0.05 ) == 0){
+        progressBar((double)iteration / (double)cashflowSteps);
+      }
     }
   }
   catch(const std::runtime_error& e){

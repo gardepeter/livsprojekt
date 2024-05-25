@@ -21,7 +21,7 @@ startDuration = startIncrement / stepAmountPerTimeUnit
 # integrate(integrand, 0, 49.916)$val
 
 system.time({
-   cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+  # cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
   cashflow_fast = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
 })
 
