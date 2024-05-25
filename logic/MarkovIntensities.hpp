@@ -56,8 +56,6 @@ double mu01(double x) {
 
 double mu02Improvement(double age , double time){
   // Alder,Kvinder,Mænd,Kvinder_levetids_forberinger,Mænd_levetids_forbedringer
-  //std::cout<< mu02(age);
-  //std::cout << improvement(age,time);
   double improvementFactorMale = improvementData((int) floor(age),4);
   //improvement for male
   double improvementFactorFemale = improvementData((int) floor(age),3);
