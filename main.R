@@ -53,7 +53,7 @@ plot_1 <- ggplot(probabilities_1_long, aes(x = time, y = probabilities, color = 
 grid.arrange(plot_0, plot_1, nrow = 1)
 
 #-------------------------------------------------------------------------------
-#Plot af cashflows
+#Plot of unitCashflows
 #-------------------------------------------------------------------------------
 unitCashflows <- read_csv("data/unitCashflows.csv")
 
@@ -69,13 +69,9 @@ ggplot(plot, aes(age, value))+
   theme(axis.title.y=element_blank())
 
 #-------------------------------------------------------------------------------
-#Reserve beregning
+#unitReserve calculation
 #-------------------------------------------------------------------------------
 #rates
-forward_rates <- read_delim("data/forward rates.csv", 
-                            delim = ";", escape_double = FALSE, trim_ws = TRUE)
-colnames(forward_rates)<-c("year","rate","P")
-
 spot_rate <- read_delim("data/FT RFR med VA pr. 16. maj.csv", 
                         delim = ";", escape_double = FALSE, trim_ws = TRUE)
 spot_rate<-na.omit(spot_rate)
@@ -95,6 +91,21 @@ reserve<-function(maxtime,interest_rate,cashflow_data){
 }
 
 reserve(maxtime=25,interest_rate=spot_rate,cashflow_data=unitCashflows_final)
+
+#-------------------------------------------------------------------------------
+#DV01
+#-------------------------------------------------------------------------------
+spot_rate_DV01<-spot_rate
+spot_rate_DV01$DV01<-spot_rate$rate+0.0001
+reserve(maxtime=25,interest_rate=spot_rate_DV01[,c(1,3)],cashflow_data=unitCashflows_final)
+
+true_reserve<-reserve(maxtime=25,interest_rate=spot_rate,cashflow_data=unitCashflows_final)
+oneBasisPoint_reserve<-reserve(maxtime=25,interest_rate=spot_rate_DV01[,c(1,3)],cashflow_data=unitCashflows_final)
+
+DV01<- ((true_reserve-oneBasisPoint_reserve)/0.0001)/true_reserve
+
+
+
 
 
 
