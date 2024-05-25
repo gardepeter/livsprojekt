@@ -107,5 +107,47 @@ arma::mat RK4(int startTime, int endTime, int stepAmount, double age) {
   return probabilitySaved;
 }
 
+arma::mat RK1Step(arma::mat& probabilities, double t, double stepLength, int states, double age){
+  arma::mat k1(states, states);
+  arma::mat k2(states, states);
+  arma::mat k3(states, states);
+  arma::mat k4(states, states);
+  
+  for(int i = 0; i < states; i++){
+    for(int j = 0; j < states; j++){
+      k1(i , j) = stepLength * transformationKolmogorov(probabilities, i, j, t, age);
+    }
+  }
+  
+  arma::mat newProbabilities = probabilities +k1;
+  
+  return newProbabilities;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat RK1(int startTime, int endTime, int stepAmount, double age) {
+  loadCsvFile();
+  if(endTime <= startTime || stepAmount <= 1){
+    return arma::mat();
+  }
+  
+  double stepLength = 1. / (double)stepAmount;
+  
+  arma::mat probabilities = arma::eye(states, states);
+  arma::mat probabilitySaved(stepAmount, states * states);
+  probabilitySaved.row(0) = matrixToVector(probabilities, states);
+  
+  for(int n = 1; n < stepAmount; n++){
+    arma::mat tempMatrix = RK1Step(probabilities, startTime + n * stepLength, stepLength, states, age);
+    for(int i = 0; i < states; i++){
+      probabilities.row(i) = tempMatrix.row(i);
+    }
+    probabilitySaved.row(n) = matrixToVector(probabilities, states);
+  }
+  
+  return probabilitySaved;
+}
+
 
 
