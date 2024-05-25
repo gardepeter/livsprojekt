@@ -12,7 +12,7 @@ double intensityOutOfState(int j, double s, double d, double age){
     if(k == j){
       continue;
     }
-    sum += mu(j, k, s, d, age);
+    sum += mu(j, k, s - t0, d, age);
   }
   
   return sum;
@@ -24,7 +24,7 @@ double leftIntegral(arma::field<arma::sp_mat>& probabilities, double t0, int i, 
   for(int n=1; n <= d_step; n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
     trapezoidalSum += 0.5*(probabilities(states * i + j)(n, iteration) - probabilities(states * i + j)(n-1, iteration))
-    *(intensityOutOfState(j,s,n*stepLength, age)+intensityOutOfState(j,s,stepLength*(n-1), age));
+    *(intensityOutOfState(j, s, n*stepLength, age)+intensityOutOfState(j, s, stepLength*(n-1), age));
   }
   return trapezoidalSum;
 }
@@ -36,7 +36,7 @@ double trapezoidalRightEstimation(arma::field<arma::sp_mat>& probabilities, doub
   for(int n=1; n <= round((u+s-t0)/stepLength); n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
     trapezoidalSum += 0.5*(probabilities(states * i + l)(n, iteration) - probabilities(states * i + l)(n-1, iteration))
-    *(mu(l,j,s,n*stepLength, age)+mu(l,j,s,stepLength*(n-1), age));
+    *(mu(l, j, s - t0, n*stepLength, age)+mu(l, j, s - t0, stepLength*(n-1), age));
   }
   return trapezoidalSum;
 }
