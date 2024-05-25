@@ -39,6 +39,19 @@ double mu12(double x, double d) {
   }
 }
 
+double mu02(double age , double x){
+  // Alder,Kvinder,Mænd,Kvinder_levetids_forberinger,Mænd_levetids_forbedringer
+  double improvementFactorMale = improvementData((int) floor(age),4);
+  //improvement for male
+  double improvementFactorFemale = improvementData((int) floor(age),3);
+  
+  //the actual factor we multiply on the intensity
+  improvementFactorMale  = pow(1-improvementFactorMale,floor(x)+yearsFromToday);
+  improvementFactorFemale = pow(1-improvementFactorFemale, floor(x) + yearsFromToday);
+  
+  return (improvementData((int) floor(age),2)*improvementFactorMale+improvementData((int) floor(age),1)*improvementFactorFemale)/2;
+}
+
 double mu(int i, int j, double x, double d, double age){
   if(i == 0 && j == 1){
     return mu01(age + x);
