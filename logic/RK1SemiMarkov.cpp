@@ -112,37 +112,42 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
     - probabilities(gracePeriod + 1, states * i + j); // Strict ineq. as gracePeriod <= 3 month
   }
   
-  for(int iteration = 1; iteration < cashflowSteps; iteration++){ 
-    arma::field<arma::sp_mat> probabilitiesTemp(states * states);
-    probabilitiesTemp.for_each( [&](arma::sp_mat& X) { X.set_size(stepsFromZeroToStartDuration + iteration + 1, iteration + 1); } );
-
-    for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
+  try{
+    for(int iteration = 1; iteration < cashflowSteps; iteration++){ 
+      arma::field<arma::sp_mat> probabilitiesTemp(states * states);
+      probabilitiesTemp.for_each( [&](arma::sp_mat& X) { X.set_size(stepsFromZeroToStartDuration + iteration + 1, iteration + 1); } );
+  
+      for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
+          for(int i_state = 0; i_state < states; i_state++){
+            for(int j_state = 0; j_state < states; j_state++){
+              probabilitiesTemp(states * i_state + j_state)(row, iteration - 1) = probabilities(row, states * i_state + j_state);
+          }
+        }
+      }
+     
+      RK1Step(probabilitiesTemp, startTime, startDuration, iteration, stepLength, states, age);
+  
+      for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
         for(int i_state = 0; i_state < states; i_state++){
           for(int j_state = 0; j_state < states; j_state++){
-            probabilitiesTemp(states * i_state + j_state)(row, iteration - 1) = probabilities(row, states * i_state + j_state);
+             probabilities(row, states * i_state + j_state) = probabilitiesTemp(states * i_state + j_state)(row, iteration);
+          }
         }
       }
-    }
-   
-    RK1Step(probabilitiesTemp, startTime, startDuration, iteration, stepLength, states, age);
-
-    for(int row = 0; row <= stepsFromZeroToStartDuration + iteration; row++){
-      for(int i_state = 0; i_state < states; i_state++){
-        for(int j_state = 0; j_state < states; j_state++){
-           probabilities(row, states * i_state + j_state) = probabilitiesTemp(states * i_state + j_state)(row, iteration);
-        }
+      
+      cashflow(iteration, 0) = iteration * stepLength;
+      
+      if(stepsFromZeroToStartDuration + iteration >= gracePeriod + 1 && age + iteration * stepLength < RETIREMENT_AGE){
+        cashflow(iteration, 1) = probabilities(stepsFromZeroToStartDuration + iteration, states * i + j)
+        - probabilities(gracePeriod + 1, states * i + j); // Strict ineq. as gracePeriod <= 3 month
       }
+      
     }
-    
-    cashflow(iteration, 0) = iteration * stepLength;
-    
-    if(stepsFromZeroToStartDuration + iteration >= gracePeriod + 1 && age + iteration * stepLength < RETIREMENT_AGE){
-      cashflow(iteration, 1) = probabilities(stepsFromZeroToStartDuration + iteration, states * i + j)
-      - probabilities(gracePeriod + 1, states * i + j); // Strict ineq. as gracePeriod <= 3 month
-    }
-    
   }
-
+  catch(const std::runtime_error& e){
+    std::cout << e.what() << std::endl;
+  }
+  
   return cashflow;
 }
 
@@ -158,8 +163,13 @@ arma::field<arma::sp_mat> RK1_Cpp(double startTime, double startDuration, double
   
   boundaryCondition(probabilities, stepsFromZeroToStartDuration );
   
-  for(int iteration = 1; iteration < stepAmountPerTimeUnit * (endTime - startTime); iteration++){
-    RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states, age);
+  try{
+    for(int iteration = 1; iteration < stepAmountPerTimeUnit * (endTime - startTime); iteration++){
+      RK1Step(probabilities, startTime, startDuration, iteration, stepLength, states, age);
+    }
+  }
+  catch(const std::runtime_error& e){
+    std::cout << e.what() << std::endl;
   }
 
   return probabilities;
@@ -182,7 +192,6 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
 // [[Rcpp::export]]
 arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
   arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
-  
   arma::sp_mat P =  probabilities(states * i + j);
   
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);

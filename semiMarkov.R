@@ -8,7 +8,7 @@ Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 age = 20
 startTime = 0.0
 endTime = 50.0 #50.
-stepAmountPerTimeUnit = 52 #52
+stepAmountPerTimeUnit = 2#52 #52
 startIncrement = 0
 karensPeriod = 3
 startDuration = startIncrement / stepAmountPerTimeUnit

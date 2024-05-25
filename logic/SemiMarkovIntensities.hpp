@@ -28,15 +28,14 @@ double mu10(double x, double d) {
   else if(d > 5){
     return exp(-0.042168 - 0.092455*x);
   }
+  throw std::runtime_error("ERROR: mu10(.) out of bounds (livsprojekt.logic.SemiMarkovIntensities)");
 }
 
 double mu12(double x, double d) {
   if(d <= 5){
     return exp( -6.1057464 + 0.0635736 * x - 0.2891195 * d );
   }
-  else if(d > 5){
-    return exp( - 11.9169277 + 0.1356766 * x );
-  }
+  return exp( - 11.9169277 + 0.1356766 * x );
 }
 
 double mu(int i, int j, double x, double d, double age){
@@ -52,9 +51,10 @@ double mu(int i, int j, double x, double d, double age){
   else if(i == 1 && j == 2){
     return mu12(age + x, d);
   }
-  else if(i == 2 && ( j == 1 || j == 2)){
+  else if(i == 2 && ( j == 0 || j == 1 )){
     return 0.;
   }
+  throw std::runtime_error("ERROR: mu(.) out of bounds (livsprojekt.logic.SemiMarkovIntensities)");
 }
 
 #endif
