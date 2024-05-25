@@ -7,10 +7,10 @@ Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 
 age = 20
 startTime = 0.0
-endTime = 50.0 #50.
-stepAmountPerTimeUnit = 2#52 #52
+endTime = 10.0 #50.
+stepAmountPerTimeUnit = 12#52 #52
 startIncrement = 0
-karensPeriod = 3
+karensPeriod = 1/4
 startDuration = startIncrement / stepAmountPerTimeUnit
 
 # cashflow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, karensPeriod, age, 0, 1)
@@ -21,7 +21,7 @@ startDuration = startIncrement / stepAmountPerTimeUnit
 # integrate(integrand, 0, 49.916)$val
 
 system.time({
-  # cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+   cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
   cashflow_fast = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
 })
 
