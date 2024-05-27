@@ -1,7 +1,18 @@
 #include "RcppArmadillo.h"
+#include "AggregateMarkovIntensities.hpp"
+
+const int RETIREMENT_AGE = 67;
 
 // STEP 1
-arma::mat prodIntegralSolver(double s, double t, arma::mat& M){
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat test(){
+  loadBeta(10);
+  return intensityMatrix(5.);
+}
+
+arma::mat prodIntegralSolver(double s, double t, arma::mat& beta0, arma::mat& beta1){
   return arma::mat();
 }
 
@@ -67,15 +78,62 @@ arma::vec cashflowStep(double t,
   return arma::vec();
 }
 
+void progressBar(double percent){
+  int barWidth = 70;
+  
+  std::cout << "[";
+  int pos = barWidth * percent;
+  for (int i = 0; i < barWidth; ++i) {
+    if (i < pos) std::cout << "=";
+    else if (i == pos) std::cout << ">";
+    else std::cout << " ";
+  }
+  std::cout << "] " << int(percent * 100.0) << " %\r";
+  std::cout.flush();
+}
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
-arma::cube cashflowAggregateMarkov(double startTime, 
+arma::mat cashflowAggregateMarkov(double startTime, 
                                    double startDuration, 
+                                   double startAge,
                                    double endTime,
                                    int stepAmountPerTimeUnit,
-                                   int dBar){
-  return arma::cube();
+                                   double gracePeriod,
+                                   int dMicroStates){
+  
+  double stepLength = 1. / (double)stepAmountPerTimeUnit;
+  int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1;// Plus one (strict ineq.) as gracePeriod <= 1/4 month
+  
+  arma::mat cashflow(cashflowSteps, 2);
+
+  try{
+    for(int iteration = 0; iteration < cashflowSteps; iteration++){ 
+      
+      cashflow(iteration, 0) = iteration * stepLength;
+      
+      if(startAge + iteration * stepLength >= RETIREMENT_AGE){
+        break;
+      }
+      
+      if( iteration % (int)round( cashflowSteps * 0.01 ) == 0){
+        progressBar((double)iteration / (double)cashflowSteps);
+      }
+      
+      if(iteration < gracePeriodSteps){
+        continue;
+      }
+      
+      // make cashflow step
+      // cashflowStep()
+    }
+  }
+  catch(const std::runtime_error& e){
+    std::cout << e.what() << std::endl;
+  }
+  
+  return cashflow;
 }
 
