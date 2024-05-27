@@ -109,5 +109,3 @@ sum(25*(spot_rate$rate-spot_rate_DV01$DV01)/(1+spot_rate$rate)*true_reserve)
 
 
 
-
-
