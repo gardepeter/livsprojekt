@@ -1,5 +1,5 @@
 library(tidyverse)
-
+options(scipen = 9)
 load("./data/resources/fits.rda")
 
 microStateIntensity = function(microStateAmount, macroState, iMicroState, jMicroState){
@@ -24,4 +24,22 @@ for(fit_i in 2:6){
 
 Rcpp::sourceCpp("logic/AggregateMarkov.cpp")
 test()
+
+temp0 = fits[[3]]$A_big[[1]][[2]]
+temp = matrix(nrow = 3, ncol = 3, 0)
+for(i in 1:4){
+  temp[c(1,1,3,3)[i],c(1,3,1,3)[i]] = temp0[c(1,1,5,5)[i], c(1,5,1,5)[i]]
+}
+temp[2,2] = sum(temp0[2:4,2:4])/3
+
+fromMacroState = 2
+toMacroState = 3
+fromMicroState = 1
+glm = fits[[2]]$exit_fits[[fromMacroState]][[toMacroState]][[fromMicroState]]
+predict(glm, tibble(x = 36, exposure = 1), type = "response")
+
+fits[[2]]$M[[1]]
+
+Rcpp::sourceCpp("logic/AggregateMarkovV2.cpp")
+test(3, 10, 50, 52)
 

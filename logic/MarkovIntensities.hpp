@@ -2,8 +2,10 @@
 #define MarkovIntensities
 
 const int states = 3;
-
+const int RETIREMENT_AGE = 67;
+const double EPSILON = 0.00001;
 const int yearsFromToday = 2;
+
 arma::mat improvementData(111,5);
 
 void loadCsvFile(){

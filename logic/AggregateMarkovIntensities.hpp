@@ -20,10 +20,10 @@ void loadBeta(int microStates){
   beta.slice(1).load(path1, arma::csv_ascii);
 }
 
-arma::mat intensityMatrix(double x){
-  arma::mat M = exp(beta.slice(0) + beta.slice(1) * x);
-  arma::mat diag = arma::diagmat(arma::sum(M, 1) + 1);
-  return M - diag;
+arma::mat intensityMatrix(double age, double x, arma::cube& param){
+  arma::mat M = exp(param.slice(0) + param.slice(1) * (age + x) );
+  M -= arma::diagmat(M.diag());
+  return M - arma::diagmat(arma::sum(M, 1));
 }
 
 

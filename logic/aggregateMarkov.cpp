@@ -1,19 +1,16 @@
 #include "RcppArmadillo.h"
 #include "AggregateMarkovIntensities.hpp"
 
-const int RETIREMENT_AGE = 67;
 const int scenario=2;
-const int states=3;
 
 // STEP 1
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::export]]
-arma::mat test(){
-  loadBeta(10);
-  return intensityMatrix(5.);
+arma::mat prodIntegralStep(){
+  
 }
 
-arma::mat prodIntegralSolver(double s, double t, arma::mat& beta0, arma::mat& beta1){
+arma::mat prodIntegralSolver(double s, double t, arma){
+  
+  return arma::mat();
 }
 
 int di(int macrostate, int scenario){
@@ -138,14 +135,12 @@ arma::mat cashflowAggregateMarkov(double startTime,
                                    int stepAmountPerTimeUnit,
                                    double gracePeriod,
                                    int dMicroStates){
-  
-  double stepLength = 1. / (double)stepAmountPerTimeUnit;
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
-  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1;// Plus one (strict ineq.) as gracePeriod <= 1/4 month
-  
   arma::mat cashflow(cashflowSteps, 2);
-
+  
   try{
+    double stepLength = 1. / (double)stepAmountPerTimeUnit;
+    int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1;// Plus one (strict ineq.) as gracePeriod <= 1/4 month
     for(int iteration = 0; iteration < cashflowSteps; iteration++){ 
       
       cashflow(iteration, 0) = iteration * stepLength;

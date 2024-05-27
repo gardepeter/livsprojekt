@@ -1,8 +1,6 @@
 #include "RcppArmadillo.h"
 #include "MarkovIntensities.hpp"
 
-const int RETIREMENT_AGE = 67;
-
 double intensityOutOfState(int j, double s, double age){
   double sum = 0;
   

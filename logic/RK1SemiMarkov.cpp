@@ -3,9 +3,6 @@
 #include <windows.h> 
 #include <RcppThread.h>
 
-const double EPSILON = 0.00001;
-const double RETIREMENT_AGE = 67.;
-
 double intensityOutOfState(int j, double s, double d, double age, double t0){
   double sum = 0;
   
