@@ -4,7 +4,7 @@ microStateIntensity = function(microStateAmount, macroState, iMicroState, jMicro
   if(iMicroState == jMicroState){
     stop("ERROR: i = j ")
   }
-  if( !(microStateAmount %in% c(1, 2, 3, 5, 7, 10)) ){
+  if( !(microStateAmount %in% c(1, 2, 3, 4, 5, 6)) ){
     stop("ERROR: microStateAmount")
   }
   
