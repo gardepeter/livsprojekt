@@ -2,9 +2,10 @@
 #include "AggregateMarkovIntensities.hpp"
 
 const int RETIREMENT_AGE = 67;
+const int scenario=2;
+const int states=3;
 
 // STEP 1
-
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 arma::mat test(){
@@ -13,7 +14,15 @@ arma::mat test(){
 }
 
 arma::mat prodIntegralSolver(double s, double t, arma::mat& beta0, arma::mat& beta1){
-  return arma::mat();
+}
+
+int di(int macrostate, int scenario){
+  if(macrostate != 1){
+    return 1;
+  }
+
+  arma::vec microStateMapping = {1, 2, 3, 5, 7, 10};
+  return microStateMapping(scenario - 1);
 }
 
 arma::mat initialConditionalDistribution(){
@@ -22,6 +31,7 @@ arma::mat initialConditionalDistribution(){
 
 // STEP 2
 //TODO: can and should be parralized
+// should take some short of cube in as an input
 arma::cube allProbabilitySolver(double startTIme, double endTime){
   return arma::cube();
 }
@@ -31,8 +41,27 @@ arma::mat probabilitySolver(double startTIme, double endTime, arma::cube& allPro
 }
 // STEP 3
 //// i)
-arma::mat diagonolMatrix(double startTime, double endTime, arma::cube& microStateProbabilities){
-  return arma::mat();
+arma::mat diagonolMatrix(double startTime, 
+                         double endTime,
+                         int dbar,
+                         arma::cube& microStateProbabilities){
+  //creates a matrix that is big enough to have each probability matrix in its diagonal
+  arma::mat result(dbar,dbar);
+  int state=0; // start with active 
+  for(int l=0; l<states; l++){ // for each state
+    int displacement=0;
+    //we look at the matrix P for each macro state where only for l=1 (sick) the dimension changes
+    for(int i=0; i<di(state,scenario); i++){
+      for(int j=0; j<di(state,scenario); j++ ){
+        // we copy matrix P_kk into the diagonal
+        result(i+displacement,j+displacement)=microStateProbabilities(state,i,j); 
+      }
+    }
+    //update the displacement such that we can copy another matrix into the diagonal
+    displacement += di(state,scenario);
+  }
+  
+  return result;
 }
 
 //// ii)
@@ -40,11 +69,18 @@ arma::vec integrand(double t,
                     double v, 
                     double tL,
                     arma::mat& P,
-                    arma::mat& MThilde,
+                    arma::mat& MTilde,
                     arma::mat& PBar,
                     arma::mat& R,
                     int dBar){
-  return arma::vec();
+  //created 1_dbar and fills it in
+  arma::mat oneColumndbar(dBar,1);
+  for(int i=0; i<dBar; i++){
+    oneColumndbar(i,1)=1;
+  }
+  // the result where we have assumed that the matrices is already calculated for the specific t and v
+  arma::mat result=P*MTilde*R*oneColumndbar;
+  return result;
 }
 
 arma::vec rightTerm(double t, 
