@@ -102,10 +102,7 @@ reserve(maxtime=25,interest_rate=spot_rate_DV01[,c(1,3)],cashflow_data=unitCashf
 true_reserve<-reserve(maxtime=25,interest_rate=spot_rate,cashflow_data=unitCashflows_final)
 oneBasisPoint_reserve<-reserve(maxtime=25,interest_rate=spot_rate_DV01[,c(1,3)],cashflow_data=unitCashflows_final)
 
-DV01<- ((true_reserve-oneBasisPoint_reserve)/0.0001)/true_reserve
+DV01<- -((oneBasisPoint_reserve-true_reserve)/0.0001)
 
 sum(25*(spot_rate$rate-spot_rate_DV01$DV01)/(1+spot_rate$rate)*true_reserve)
-
-
-
 
