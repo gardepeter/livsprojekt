@@ -61,9 +61,6 @@ ggplot(plot, aes(age, value))+
   geom_line() + 
   scale_y_continuous(breaks = seq(0, 1.2, length.out = 7), limits = c(0, 1.2)) +
   facet_grid(~cashflow, labeller = labeller(cashflow = new_labels))+
-<<<<<<< HEAD:R/Analysis/unitcashflow.R
-  theme(axis.title.y=element_blank())
-=======
   theme(axis.title.y=element_blank())
 
 #-------------------------------------------------------------------------------
@@ -104,4 +101,3 @@ DV01<- -((oneBasisPoint_reserve-true_reserve)/0.0001)
 
 sum(25*(spot_rate$rate-spot_rate_DV01$DV01)/(1+spot_rate$rate)*true_reserve)
 
->>>>>>> 1f7bb18347c773d7010b649b04db7dd07328c1eb:main.R
