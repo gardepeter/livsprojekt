@@ -7,13 +7,15 @@ Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 
 age = 20
 startTime = 0.0
-endTime = 48.0 #50.
-stepAmountPerTimeUnit = 52#52 #52
+endTime = 10.0 #50.
+stepAmountPerTimeUnit = 12#52 #52
 startIncrement = 0
 karensPeriod = 1/4
 startDuration = startIncrement / stepAmountPerTimeUnit
 
-
+temp = RK1(startTime, startDuration, endTime, stepAmountPerTimeUnit, age)
+p01 = read.csv("p01.csv", header = F)
+# p00 = read.csv("p00.csv", header = F)
 # cashflow = read_csv("./data/output/unitDisabilityBenefitCashflow_3MonthGracePeriod_20YearsOldActive2024.csv")
 # cashflow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, karensPeriod, age, 0, 1)
 # rate_cont = approxfun(unlist(spot_rate[,1]), unlist(spot_rate[,2]))
@@ -23,8 +25,8 @@ startDuration = startIncrement / stepAmountPerTimeUnit
 # integrate(integrand, 0, 49.9)$val
 
 system.time({
-  # cashflow_slow = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
-  cashflow_fast = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+  # cashflow_old = unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
+  cashflow_new= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, karensPeriod, 0, 1)
 })
 
 # sum(cashflow_slow - cashflow_fast) == 0

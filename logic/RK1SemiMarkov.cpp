@@ -122,7 +122,7 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
   int nrow = stepsFromZeroToStartDuration + cashflowSteps;
-  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1;// Plus one (strict ineq.) as gracePeriod <= 1/4 month
+  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod);// Plus one (strict ineq.) as gracePeriod <= 1/4 month
   
   arma::sp_mat probabilities(nrow, states * states);
   boundaryCondition(probabilities, stepsFromZeroToStartDuration );
@@ -218,31 +218,32 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
   return 0;
 }
 
+// LEGACY CODE
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
-arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
-  loadCsvFile();
-  arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
-  arma::sp_mat P =  probabilities(states * i + j);
-  
-  int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
-  double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
-  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
-  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1; // Strict ineq. as gracePeriod <= 1/4
-  
-  arma::mat cashflow(cashflowSteps, 2);
-  for(int n = 0; n < cashflowSteps; n++ ){
-    cashflow(n, 0) = n * stepAmountLength;
-    if(age + n * stepAmountLength >= RETIREMENT_AGE){
-      break;
-    }
-    
-    if(stepsFromZeroToStartDuration + n < gracePeriodSteps){
-      continue;
-    }
-    cashflow(n, 1) = P(stepsFromZeroToStartDuration + n, n) - P(gracePeriodSteps, n); 
-  }
-  
-  return cashflow;
-}
+// arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
+//   loadCsvFile();
+//   arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
+//   arma::sp_mat P =  probabilities(states * i + j);
+//   
+//   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+//   double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
+//   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
+//   int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod); // Strict ineq. as gracePeriod <= 1/4
+//   
+//   arma::mat cashflow(cashflowSteps, 2);
+//   for(int n = 0; n < cashflowSteps; n++ ){
+//     cashflow(n, 0) = n * stepAmountLength;
+//     if(age + n * stepAmountLength >= RETIREMENT_AGE){
+//       break;
+//     }
+//     
+//     if(stepsFromZeroToStartDuration + n < gracePeriodSteps){
+//       continue;
+//     }
+//     cashflow(n, 1) = P(stepsFromZeroToStartDuration + n, n) - P(gracePeriodSteps, n); 
+//   }
+//   
+//   return cashflow;
+// }
