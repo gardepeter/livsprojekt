@@ -8,7 +8,7 @@ arma::mat prodIntegralStep(){
   
 }
 
-arma::mat prodIntegralSolver(double s, double t, arma){
+arma::mat prodIntegralSolver(double s, double t, arma::mat& matrix){
   
   return arma::mat();
 }

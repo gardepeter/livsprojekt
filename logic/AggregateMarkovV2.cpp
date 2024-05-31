@@ -34,10 +34,10 @@ int di(int macrostate, int scenario){
   arma::vec microStateMapping = {1, 2, 3, 5, 7, 10};
   return microStateMapping(scenario - 1);
 }
-arma::mat Pi(int t,int u, int macroStates){
+arma::mat Pi(double t,double u, int macroStates){
   arma::mat pi(1,di(macroStates,scenario));
   //fill in pi
-  //
+  //remember t in our notes is age + t
   //
   return pi;
 }
@@ -53,14 +53,10 @@ arma::mat EMatrix(int macroState){
   for(int i=0; i<states;i++){
     dbar +=di(i,scenario);
   }
-  arma::mat E(1,1);
-  for(int jtilde=0; jtilde<di(macroState,scenario);jtilde++){
-    //need to put 1 at the right spot
-    
-    arma::mat ejfat(dbar,1);
-    
-    arma::mat ejtilde(di(macroState,scenario),1);
-    
+  arma::mat E(dbar,di(macroState,scenario));
+  
+  for(int j=0; j< di(macroState,scenario); j++){
+    E.col(j).fill(1);
   }
   return E;
 }
@@ -78,6 +74,21 @@ arma::mat testBetaFull(double s, double t, double age, int stepAmountPerTimeUnit
   loadBeta(5);
   return prodIntegralSolver(s, t, age, stepAmountPerTimeUnit, betaFull);
 }
+
+arma::mat initialCondition(double startTime,
+                           double startDuration,
+                           double age,
+                           int stepAmountPerTimeUnit, 
+                           int macroState, 
+                           arma::cube& param){
+  //we get the M_ii depending on the parameters we put in
+  arma::mat upperFraction=Pi(startTime, startDuration, macroState)* 
+    prodIntegralSolver(startTime-startDuration, startTime,stepAmountPerTimeUnit, param)*
+    EMatrix(macroState).tr;
+  arma::mat result(1,1);
+  return result;
+}
+
 
 [[Rcpp::depends(RcppArmadillo)]]
 [[Rcpp::export]]
