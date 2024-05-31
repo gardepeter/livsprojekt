@@ -3,6 +3,8 @@
 #include <windows.h> 
 #include <RcppThread.h>
 
+const int START_PARALLEL_PROC = 400;
+
 double intensityOutOfState(int j, double s, double d, double age, double t0){
   double sum = 0;
   
@@ -55,15 +57,18 @@ void RK1Step(arma::field<arma::sp_mat>& probabilities, double startTime, double 
     for(int j = 0; j < states; j++){
       double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration - 1, age);
       
-      // for(int d_step = 1; d_step <= (int)floor(startDuration/stepLength) + iteration; d_step++){
-      //   probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
-      //     + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
-      // }
-      
-      RcppThread::parallelFor(1, (int)floor(startDuration/stepLength) + iteration + 1, [&] (size_t d_step) {
-        probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
-        + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
-      });
+      if(iteration > START_PARALLEL_PROC){
+        for(int d_step = 1; d_step <= (int)floor(startDuration/stepLength) + iteration; d_step++){
+          probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
+          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
+        }
+      } else{
+        RcppThread::parallelFor(1, (int)floor(startDuration/stepLength) + iteration + 1, [&] (size_t d_step) {
+          probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
+          + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not
+        });
+      }
+    
     }
   }
 }
@@ -222,28 +227,28 @@ int RK1(double startTime, double startDuration, double endTime, int stepAmountPe
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
-// arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
-//   loadCsvFile();
-//   arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
-//   arma::sp_mat P =  probabilities(states * i + j);
-//   
-//   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
-//   double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
-//   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
-//   int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod); // Strict ineq. as gracePeriod <= 1/4
-//   
-//   arma::mat cashflow(cashflowSteps, 2);
-//   for(int n = 0; n < cashflowSteps; n++ ){
-//     cashflow(n, 0) = n * stepAmountLength;
-//     if(age + n * stepAmountLength >= RETIREMENT_AGE){
-//       break;
-//     }
-//     
-//     if(stepsFromZeroToStartDuration + n < gracePeriodSteps){
-//       continue;
-//     }
-//     cashflow(n, 1) = P(stepsFromZeroToStartDuration + n, n) - P(gracePeriodSteps, n); 
-//   }
-//   
-//   return cashflow;
-// }
+arma::mat unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
+  loadCsvFile();
+  arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
+  arma::sp_mat P =  probabilities(states * i + j);
+
+  int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
+  double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
+  int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
+  int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod); // Strict ineq. as gracePeriod <= 1/4
+
+  arma::mat cashflow(cashflowSteps, 2);
+  for(int n = 0; n < cashflowSteps; n++ ){
+    cashflow(n, 0) = n * stepAmountLength;
+    if(age + n * stepAmountLength >= RETIREMENT_AGE){
+      break;
+    }
+
+    if(stepsFromZeroToStartDuration + n < gracePeriodSteps){
+      continue;
+    }
+    cashflow(n, 1) = P(stepsFromZeroToStartDuration + n, n) - P(gracePeriodSteps, n);
+  }
+
+  return cashflow;
+}

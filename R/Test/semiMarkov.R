@@ -24,12 +24,12 @@ startDuration = 0.
 # integrate(integrand, 0, 49.9)$val
 
 system.time({
-  cashflow_1= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 1, age, karensPeriod, 0, 1)
-  cashflow_2= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 2, age, karensPeriod, 0, 1)
-  cashflow_4= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 4, age, karensPeriod, 0, 1)
-  cashflow_8= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 8, age, karensPeriod, 0, 1)
+  cashflow_2 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 2, age, karensPeriod, 0, 1)
+  cashflow_4 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 4, age, karensPeriod, 0, 1)
+  cashflow_8 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 8, age, karensPeriod, 0, 1)
   cashflow_16= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 16, age, karensPeriod, 0, 1)
   cashflow_32= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 32, age, karensPeriod, 0, 1)
+  cashflow_64= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 64, age, karensPeriod, 0, 1)
 })
 
 # sum(cashflow_slow - cashflow_fast) == 0
