@@ -1,6 +1,5 @@
-#include "RcppArmadillo.h"
+#include <RcppArmadillo.h>
 #include "SemiMarkovIntensities.hpp"
-#include <windows.h> 
 #include <RcppThread.h>
 
 const int START_PARALLEL_PROC = 400;
@@ -36,7 +35,8 @@ double trapezoidalRightEstimation(arma::field<arma::sp_mat>& probabilities, doub
   for(int n=1; n <= round((u+s-t0)/stepLength); n++){ // this is for the y-coordinate of the probability matrix
     // s=t0+xh 
     trapezoidalSum += 0.5*(probabilities(states * i + l)(n, iteration) - probabilities(states * i + l)(n-1, iteration))
-    *(mu(l, j, s - t0, n*stepLength, age)+mu(l, j, s - t0, stepLength*(n-1), age));
+    *(mu(l, j, s - t0, n*stepLength
+           , age)+mu(l, j, s - t0, stepLength*(n-1), age));
   }
   return trapezoidalSum;
 }
