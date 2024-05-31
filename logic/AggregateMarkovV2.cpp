@@ -3,6 +3,9 @@
 #include <iostream>
 #include <cmath>
 
+const int scenario=2;
+
+
 arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTimeUnit, arma::cube& param){
   double stepLength = 1/(double)stepAmountPerTimeUnit;
   int stepAmount = (int)round((t - s) * stepAmountPerTimeUnit);
@@ -19,6 +22,47 @@ arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTi
   }
   
   return res;
+}
+
+//stolen from previous version... is it going to be deleted?
+int di(int macrostate, int scenario){
+  //sick
+  if(macrostate != 1){
+    return 1;
+  }
+  
+  arma::vec microStateMapping = {1, 2, 3, 5, 7, 10};
+  return microStateMapping(scenario - 1);
+}
+arma::mat Pi(int t,int u, int macroStates){
+  arma::mat pi(1,di(macroStates,scenario));
+  //fill in pi
+  //
+  //
+  return pi;
+}
+arma::mat colOfOnes(int macroState){
+  arma::mat columnVector(di(macroState,scenario),1);
+  for(int i=0; i<di(macroState,scenario);i++){
+    columnVector(i,1)=1;
+  }
+  return columnVector;
+}
+arma::mat EMatrix(int macroState){
+  int dbar=0;
+  for(int i=0; i<states;i++){
+    dbar +=di(i,scenario);
+  }
+  arma::mat E(1,1);
+  for(int jtilde=0; jtilde<di(macroState,scenario);jtilde++){
+    //need to put 1 at the right spot
+    
+    arma::mat ejfat(dbar,1);
+    
+    arma::mat ejtilde(di(macroState,scenario),1);
+    
+  }
+  return E;
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
