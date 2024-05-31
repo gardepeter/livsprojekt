@@ -3,7 +3,7 @@
 #include <windows.h> 
 #include <RcppThread.h>
 
-const int START_PARALLEL_PROC = 400;
+const int START_PARALLEL_PROC = 100;
 
 double intensityOutOfState(int j, double s, double d, double age, double t0){
   double sum = 0;
