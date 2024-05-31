@@ -57,7 +57,7 @@ void RK1Step(arma::field<arma::sp_mat>& probabilities, double startTime, double 
     for(int j = 0; j < states; j++){
       double rightSum = rightSumOfIntegrals(probabilities, startTime, startDuration, i, j, startTime + stepLength * (iteration  - 1), stepLength, iteration - 1, age);
       
-      if(iteration > START_PARALLEL_PROC){
+      if(iteration <= START_PARALLEL_PROC){
         for(int d_step = 1; d_step <= (int)floor(startDuration/stepLength) + iteration; d_step++){
           probabilities(states * i + j)(d_step, iteration) = probabilities(states * i + j)(d_step - 1, iteration - 1)
           + stepLength * ( - leftIntegral(probabilities, startDuration, i, j, startTime + stepLength * iteration, d_step-1, stepLength, iteration - 1, age) + rightSum); //TODO investegate if d_step - 1 or not

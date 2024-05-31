@@ -1,7 +1,6 @@
 #****************************************************
 #*************** SEE semiMarkovValidation.R **********
 #*#***************************************************
-library(tidyverse)
 options(scipen =99)
 Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
 
@@ -23,13 +22,12 @@ startDuration = 0.
 # integrand = approxfun(unlist(cashflow[,1]),unlist(cashflow[,2]) * bond_price_cont(unlist(cashflow[,1])))
 # integrate(integrand, 0, 49.9)$val
 
-system.time({
-  cashflow_2 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 2, age, karensPeriod, 0, 1)
-  cashflow_4 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 4, age, karensPeriod, 0, 1)
-  cashflow_8 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 8, age, karensPeriod, 0, 1)
-  cashflow_16= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 16, age, karensPeriod, 0, 1)
-  cashflow_32= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 32, age, karensPeriod, 0, 1)
-  cashflow_64= RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 64, age, karensPeriod, 0, 1)
-})
+rbenchmark::benchmark(
+  "cashflow_2" = {cashflow_2 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 2, age, karensPeriod, 0, 1)},
+  "cashflow_4" = {cashflow_4 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 4, age, karensPeriod, 0, 1)},
+  "cashflow_8" = {cashflow_8 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 8, age, karensPeriod, 0, 1)},
+  "cashflow_16" = {cashflow_16 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 16, age, karensPeriod, 0, 1)},
+  replications = 1
+  )
 
 # sum(cashflow_slow - cashflow_fast) == 0
