@@ -2,6 +2,7 @@
 #include "AggregateMarkovIntensities.hpp"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 const int scenario=2;
 
@@ -82,13 +83,32 @@ arma::mat initialCondition(double startTime,
                            int macroState, 
                            arma::cube& param){
   //we get the M_ii depending on the parameters we put in
-  arma::mat upperFraction=Pi(startTime, startDuration, macroState)* 
-    prodIntegralSolver(startTime-startDuration, startTime,stepAmountPerTimeUnit, param)*
-    EMatrix(macroState).tr;
-  arma::mat result(1,1);
+  arma::mat tempVariable=
+    Pi(startTime, startDuration, macroState)* 
+    prodIntegralSolver(startTime-startDuration, startTime,age,stepAmountPerTimeUnit, param);
+  arma::mat upperFractionPart= tempVariable*EMatrix(macroState).t();
+  double lowerFractionPart = as_scalar(tempVariable* colOfOnes(macroState)); // nævneren og bør være en skalar
+  
+  return upperFractionPart/lowerFractionPart;
+}
+
+arma::mat leftSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, arma::cube& params){
+   arma::mat result=prodIntegralSolver(s,std::max(t-karensPeriod,s), age, stepAmountPerTimeUnit, params);
   return result;
 }
 
+//this is being a bitch for some reason
+arma::mat rightSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& params){
+  //the intensities should be for M_11
+  arma::mat result=prodIntegralSolver(std::max(s-karensPeriod) ,t,s, age, stepAmountPerTimeUnit, params);
+  return result;
+}
+arma::mat sigmaIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& params){
+  arma:: mat result=leftSigmaProdIntegral(s,t,age,stepAmountPerTimeUnit,karensPeriod,params)*
+                    EMatrix(1)*//make some changes so it gets the right parameters
+                    rightSigmaProdIntegral(s,t,age,stepAmountPerTimeUnit, karensPeriod,macroState,params);
+  return result;
+}
 
 [[Rcpp::depends(RcppArmadillo)]]
 [[Rcpp::export]]
