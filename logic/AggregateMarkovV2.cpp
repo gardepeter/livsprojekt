@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-const int scenario=2;
+const int scenario=2; // remove, should not be global! Instead of scenario use microStatesAmount.
 
 
 arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTimeUnit, arma::cube& param){
@@ -25,7 +25,7 @@ arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTi
   return res;
 }
 
-//stolen from previous version... is it going to be deleted?
+//stolen from previous version... is it going to be deleted? Yes
 int di(int macrostate, int scenario){
   //sick
   if(macrostate != 1){
@@ -42,13 +42,17 @@ arma::mat Pi(double t,double u, int macroStates){
   //
   return pi;
 }
-arma::mat colOfOnes(int macroState){
-  arma::mat columnVector(di(macroState,scenario),1);
-  for(int i=0; i<di(macroState,scenario);i++){
-    columnVector(i,1)=1;
-  }
-  return columnVector;
-}
+
+//use instead: arma::mat vector(di(macroState,scenario), 1, arma::fill::ones);
+// arma::mat colOfOnes(int macroState){
+//   arma::mat columnVector(di(macroState,scenario),1);
+//   for(int i=0; i<di(macroState,scenario);i++){
+//     columnVector(i,1)=1;
+//   }
+//   
+//   return columnVector;
+// }
+
 arma::mat EMatrix(int macroState){
   int dbar=0;
   for(int i=0; i<states;i++){
@@ -93,14 +97,13 @@ arma::mat initialCondition(double startTime,
 }
 
 arma::mat leftSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, arma::cube& params){
-   arma::mat result=prodIntegralSolver(s,std::max(t-karensPeriod,s), age, stepAmountPerTimeUnit, params);
+   arma::mat result=prodIntegralSolver(t,std::max(s-karensPeriod, t), age, stepAmountPerTimeUnit, params);
   return result;
 }
 
-//this is being a bitch for some reason
 arma::mat rightSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& params){
   //the intensities should be for M_11
-  arma::mat result=prodIntegralSolver(std::max(s-karensPeriod) ,t,s, age, stepAmountPerTimeUnit, params);
+  arma::mat result=prodIntegralSolver(std::max(s-karensPeriod, t), s, age, stepAmountPerTimeUnit, params);
   return result;
 }
 arma::mat sigmaIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& params){
