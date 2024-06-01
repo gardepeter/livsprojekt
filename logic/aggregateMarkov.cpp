@@ -4,17 +4,17 @@
 #include <cmath>
 #include <algorithm>
 
-arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTimeUnit, arma::cube& param){
+arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTimeUnit, int microStateAmount, arma::cube& beta, arma::mat& eta){
   double stepLength = 1/(double)stepAmountPerTimeUnit;
   int stepAmount = (int)round((t - s) * stepAmountPerTimeUnit);
   
-  arma::mat res = arma::eye(param.n_rows, param.n_rows);
-  arma::cube k(param.n_rows, param.n_rows, 4);
+  arma::mat res = arma::eye(beta.n_rows, beta.n_rows);
+  arma::cube k(beta.n_rows, beta.n_rows, 4);
   for(int iteration = 1; iteration < stepAmount + 1; iteration++){
-    k.slice(0) = res * intensityMatrix(age, s + stepLength * (double)(iteration - 1), param ) * stepLength;
-    k.slice(1) = (res + 0.5 * k.slice(0)) * intensityMatrix(age, s + stepLength * (double)(iteration - 1) + 0.5 * stepLength, param ) * stepLength;
-    k.slice(2) = (res + 0.5 * k.slice(1)) * intensityMatrix(age, s + stepLength * (double)(iteration - 1) + 0.5 * stepLength, param ) * stepLength;
-    k.slice(3) = (res + k.slice(2)) * intensityMatrix(age, s + stepLength * (double)iteration, param ) * stepLength;
+    k.slice(0) = res * intensityMatrix(age, s + stepLength * (double)(iteration - 1), microStateAmount, beta, eta) * stepLength;
+    k.slice(1) = (res + 0.5 * k.slice(0)) * intensityMatrix(age, s + stepLength * (double)(iteration - 1) + 0.5 * stepLength, microStateAmount, beta, eta ) * stepLength;
+    k.slice(2) = (res + 0.5 * k.slice(1)) * intensityMatrix(age, s + stepLength * (double)(iteration - 1) + 0.5 * stepLength, microStateAmount, beta, eta ) * stepLength;
+    k.slice(3) = (res + k.slice(2)) * intensityMatrix(age, s + stepLength * (double)iteration, microStateAmount, beta, eta ) * stepLength;
     
     res += 0.125 * (k.slice(0) + 2 * k.slice(1) + 2 * k.slice(2) + k.slice(3));
   }
@@ -22,29 +22,22 @@ arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTi
   return res;
 }
 
-int di(int macrostate, int dMicroStates){
-  if(macrostate != 1){
-    return 1;
-  }
-  
-  return dMicroStates;
-}
-arma::mat Pi(double t,double u, int macroStates, int dMicroStates){
-  arma::mat pi(1,di(macroStates, dMicroStates));
+arma::mat Pi(double t,double u, int macroStates, int microStateAmount){
+  arma::mat pi(1,di(macroStates, microStateAmount));
   //fill in pi
   //remember t in our notes is age + t
   //
   return pi;
 }
 
-arma::mat EMatrix(int macroState, int dMicroStates){
+arma::mat EMatrix(int macroState, int microStateAmount){
   int dbar=0;
   for(int i=0; i<states;i++){
-    dbar +=di(i, dMicroStates);
+    dbar +=di(i, microStateAmount);
   }
-  arma::mat E(dbar,di(macroState, dMicroStates));
+  arma::mat E(dbar,di(macroState, microStateAmount));
   
-  for(int j=0; j< di(macroState, dMicroStates); j++){
+  for(int j=0; j< di(macroState, microStateAmount); j++){
     E.col(j).fill(1);
   }
   return E;
@@ -56,34 +49,50 @@ arma::mat initialCondition(double startTime,
                            int stepAmountPerTimeUnit, 
                            int macroState, 
                            arma::cube& param,
-                           int dMicroStates){
+                           int microStateAmount){
   //we get the M_ii depending on the parameters we put in
-  arma::mat tempVariable = Pi(startTime, startDuration, macroState, dMicroStates) 
-    * prodIntegralSolver(startTime-startDuration, startTime,age,stepAmountPerTimeUnit, param);
+  arma::mat tempVariable = Pi(startTime, startDuration, macroState, microStateAmount) 
+    * prodIntegralSolver(startTime-startDuration, startTime,age,stepAmountPerTimeUnit, microStateAmount, beta, eta);
   
-  arma::mat upperFractionPart= tempVariable * EMatrix(macroState, dMicroStates).t();
+  arma::mat upperFractionPart= tempVariable * EMatrix(macroState, microStateAmount).t();
   
-  arma::mat colOfOnes(di(macroState,dMicroStates), 1, arma::fill::ones);
+  arma::mat colOfOnes(di(macroState,microStateAmount), 1, arma::fill::ones);
   
   double lowerFractionPart = arma::as_scalar(tempVariable * colOfOnes);
   
   return upperFractionPart/lowerFractionPart;
 }
 
-arma::mat leftSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, arma::cube& params){
-   arma::mat result=prodIntegralSolver(t,std::max(s-karensPeriod, t), age, stepAmountPerTimeUnit, params);
+arma::mat leftSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int microStateAmount, arma::cube& beta, arma::mat eta){
+   arma::mat result=prodIntegralSolver(t,std::max(s-karensPeriod, t), age, stepAmountPerTimeUnit, microStateAmount, beta, eta);
   return result;
 }
 
-arma::mat rightSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& params){
+arma::mat rightSigmaProdIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int microStateAmount, int macroState, arma::cube& beta, arma::mat eta){
   //the intensities should be for M_11
-  return prodIntegralSolver(std::max(s-karensPeriod, t), s, age, stepAmountPerTimeUnit, params);
+  return prodIntegralSolver(std::max(s-karensPeriod, t), s, age, stepAmountPerTimeUnit, microStateAmount, beta, eta);
 }
 
-arma::mat sigmaIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& params, int dMicroStates){
-  return leftSigmaProdIntegral(s,t,age,stepAmountPerTimeUnit,karensPeriod,params)
-    * EMatrix(1, dMicroStates)
-    * rightSigmaProdIntegral(s,t,age,stepAmountPerTimeUnit, karensPeriod,macroState,params); //SELECT CORRECT PARAMS!
+arma::mat sigmaIntegral(double s, double t,double age, int stepAmountPerTimeUnit, double karensPeriod, int macroState, arma::cube& beta, arma::mat& eta, int microStateAmount){
+  return leftSigmaProdIntegral(s,t,age,stepAmountPerTimeUnit,karensPeriod, microStateAmount, beta, eta)
+    * EMatrix(1, microStateAmount)
+    * rightSigmaProdIntegral(s,t,age,stepAmountPerTimeUnit, karensPeriod,macroState,microStateAmount, beta, eta); //SELECT CORRECT PARAMS!
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat testingIntMat(){
+  loadBeta(5);
+  loadEta(5);
+  return intensityMatrix(20, 1, 5, beta, eta);
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat testingIntSubMat(){
+  loadBeta(5);
+  loadEta(5);
+  return subIntensityMatrix(1, 20, 1, 5, beta, eta);
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -95,7 +104,7 @@ arma::mat cashflowAggregateMarkov(double startTime,
                                   double endTime,
                                   int stepAmountPerTimeUnit,
                                   double gracePeriod,
-                                  int dMicroStates){
+                                  int microStateAmount){
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
   arma::mat cashflow(cashflowSteps, 2);
   

@@ -22,8 +22,16 @@ for(fit_i in 2:6){
   }
 }
 
-################### CODEGEN FOR M ###############################
+################### CODEGEN FOR PI ###############################
+
 for(fit_i in 2:6){
+  microStates = c(2,3,5,7,10)[fit_i - 1]
+    temp = coef(fits[[fit_i]]$initial_fits[[2]])
+    write.table( temp, paste0("./data/resources/startCondition/etaMicroStates", microStates, ".csv"), sep=",",  col.names=F, row.names = F)
+}
+
+################### CODEGEN FOR M ###############################
+for(fit_i in 3:3){
   microStates = c(2,3,5,7,10)[fit_i - 1]
     temp = matrix(nrow = microStates + 2, ncol = microStates + 2, 0)
     for(csv_i in 1:2){
@@ -96,7 +104,9 @@ fits[[2]]$M[[1]]
 # }
 # temp[2,2] = sum(temp0[2:4,2:4])/3
 
-Rcpp::sourceCpp("logic/AggregateMarkovV2.cpp")
+Rcpp::sourceCpp("logic/AggregateMarkov.cpp")
+testingIntMat()
+testingIntSubMat()
 t = 0
 s = 50
 grace = 1/4
