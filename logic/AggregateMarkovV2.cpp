@@ -7,6 +7,7 @@
 const int scenario=2; // remove, should not be global! Instead of scenario use microStatesAmount.
 
 
+
 arma::mat prodIntegralSolver(double s, double t, double age, int stepAmountPerTimeUnit, arma::cube& param){
   double stepLength = 1/(double)stepAmountPerTimeUnit;
   int stepAmount = (int)round((t - s) * stepAmountPerTimeUnit);
