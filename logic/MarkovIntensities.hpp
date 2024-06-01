@@ -8,6 +8,20 @@ const int yearsFromToday = 2;
 
 arma::mat improvementData(111,5);
 
+void progressBar(double percent){
+  int barWidth = 70;
+  
+  std::cout << "[";
+  int pos = barWidth * percent;
+  for (int i = 0; i < barWidth; ++i) {
+    if (i < pos) std::cout << "=";
+    else if (i == pos) std::cout << ">";
+    else std::cout << " ";
+  }
+  std::cout << "] " << int(percent * 100.0) << " %\r";
+  std::cout.flush();
+}
+
 void loadCsvFile(){
   // Alder,Kvinder,Mænd,Kvinder_levetids_forberinger,Mænd_levetids_forbedringer
   improvementData.load("../livsprojekt/data/deathIntensity.csv", arma::csv_ascii);
