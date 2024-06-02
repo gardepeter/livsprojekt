@@ -55,7 +55,7 @@ unitCashflows <- read_csv("data/unitCashflows.csv")
 plot = unitCashflows %>%
   pivot_longer(!age, values_to = "value", names_to = "cashflow")
 
-new_labels <- c("cashflow_0" = "Expected cash flow (i=0)", "cashflow_1" = "Expected cash flow (i=1)")
+new_labels <- c("cashflow_0" = "Expected cash flow (u=0)", "cashflow_1" = "Expected cash flow (u=1)")
 
 ggplot(plot, aes(age, value))+
   geom_line() + 
@@ -100,4 +100,37 @@ oneBasisPoint_reserve<-reserve(maxtime=25,interest_rate=spot_rate_DV01[,c(1,3)],
 DV01<- -((oneBasisPoint_reserve-true_reserve)/0.0001)
 
 sum(25*(spot_rate$rate-spot_rate_DV01$DV01)/(1+spot_rate$rate)*true_reserve)
+
+
+#-------------------------------------------------------------------------------
+#Plot of cash flow with different step amount
+#-------------------------------------------------------------------------------
+cashflow_2 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_2.csv", 
+                         col_names = FALSE)
+cashflow_5 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_5.csv", 
+                         col_names = FALSE)
+cashflow_10 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_10.csv", 
+                         col_names = FALSE)
+cashflow_15 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_15.csv", 
+                         col_names = FALSE)
+cashflow_20 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_20.csv", 
+                         col_names = FALSE)
+cashflow_52 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_52.csv", 
+                         col_names = FALSE)
+ggplot() + 
+  geom_line(data = cashflow_2, aes(x = X1, y = X2, color = factor('2', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_line(data = cashflow_5, aes(x = X1, y = X2, color = factor('5', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_line(data = cashflow_10, aes(x = X1, y = X2, color = factor('10', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_line(data = cashflow_15, aes(x = X1, y = X2, color = factor('15', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_line(data = cashflow_20, aes(x = X1, y = X2, color = factor('20', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_line(data = cashflow_52, aes(x = X1, y = X2, color = factor('52', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  scale_color_manual(values = c('2' = 'red', 
+                                '5' = 'orange', 
+                                '10' = 'green', 
+                                '15' = 'yellow', 
+                                '20' = 'pink', 
+                                '52' = 'blue')) +
+  labs(x = "Time",
+       y = "Cash flow",
+       color = "Stepamount per timeunit")
 
