@@ -78,10 +78,10 @@ for(fit_i in 3:3){
         temp[i, j] = glmObject[[1]][csv_i]
       }
     }
-       write.table( temp, paste0("./data/resources/full/fullIntensityBeta", csv_i - 1, "microStates", microStates, ".csv"), sep=",",  col.names=F, row.names = F)
+       # write.table( temp, paste0("./data/resources/full/fullIntensityBeta", csv_i - 1, "microStates", microStates, ".csv"), sep=",",  col.names=F, row.names = F)
   }
 }
-
+fits[[3]]$exit_fits[[1]][[2]]
 ########################### CODEGEN TEST ####################################
 
 fromMacroState = 1
@@ -91,7 +91,7 @@ fits[[4]]$exit_fits[[fromMacroState]][[toMacroState]]
 
 predict(glm, tibble(x = 36, exposure = 1), type = "response")
 
-fits[[2]]$M[[1]]
+
 
 ############################# AGG. MARKOV TEST ##########################
 # Rcpp::sourceCpp("logic/AggregateMarkov.cpp")
@@ -105,8 +105,23 @@ fits[[2]]$M[[1]]
 # temp[2,2] = sum(temp0[2:4,2:4])/3
 
 Rcpp::sourceCpp("logic/AggregateMarkov.cpp")
-testingIntMat()
-testingIntSubMat()
+testingIntMat(36, 0, 5)
+
+fits[[3]]$exit_fits[[1]][[2]]
+
+
+fits[[3]]$beta[[1]][[2]][[1]]
+exp(-6.73587981498744 + 0.00422297772469265 * 36 )
+
+
+
+fits[[4]]$beta[[1]][[2]][[1]] %*% fits[[4]]$pi[[2]][[1]]
+fits[[4]]$M[[1]]
+
+
+
+0.0004836046
+
 t = 0
 s = 50
 grace = 1/4

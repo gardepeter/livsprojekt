@@ -81,18 +81,18 @@ arma::mat sigmaIntegral(double s, double t,double age, int stepAmountPerTimeUnit
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat testingIntMat(){
-  loadBeta(5);
-  loadEta(5);
-  return intensityMatrix(20, 1, 5, beta, eta);
+arma::mat testingIntMat(double age, double s, int microStateAmount){
+  loadBeta(microStateAmount);
+  loadEta(microStateAmount);
+  return intensityMatrix(age, s, microStateAmount, beta, eta);
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat testingIntSubMat(){
+arma::mat testProdInt(double s, double t, double age){
   loadBeta(5);
   loadEta(5);
-  return subIntensityMatrix(1, 20, 1, 5, beta, eta);
+  return prodIntegralSolver(s, t, age, 12, 5, beta, eta);
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]

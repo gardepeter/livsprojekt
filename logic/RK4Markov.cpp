@@ -164,6 +164,10 @@ arma::mat markovUnitCashflowDisabilityWithKarens(int startTime, double startDura
       break;
     }
     
+    if( n % (int)round( cashflowSteps * 0.01 ) == 0){
+      progressBar((double)n / (double)cashflowSteps);
+    }
+    
     if(stepsFromZeroToStartDuration + n < gracePeriodSteps ){
       continue;
     }

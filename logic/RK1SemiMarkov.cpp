@@ -103,20 +103,6 @@ void saveCube(arma::field<arma::sp_mat>& probabilities, int states){
   }
 }
 
-void progressBar(double percent){
-  int barWidth = 70;
-  
-  std::cout << "[";
-  int pos = barWidth * percent;
-  for (int i = 0; i < barWidth; ++i) {
-    if (i < pos) std::cout << "=";
-    else if (i == pos) std::cout << ">";
-    else std::cout << " ";
-  }
-  std::cout << "] " << int(percent * 100.0) << " %\r";
-  std::cout.flush();
-}
-
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
