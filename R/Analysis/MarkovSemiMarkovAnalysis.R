@@ -91,4 +91,44 @@ ggplot(cashflowPlot, aes(x = time, y = CashFlow, color = GracePeriod)) +
   labs(x="Age (years)", y="Unit cash flow", color="Grace period (years)")
 
 
+spot_rate <- read_delim("data/FSARiskFreeCurve.csv", 
+                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
+spot_rate<-na.omit(spot_rate)
+spot_rate<-mutate(spot_rate, rate=rate/100)
+
+reserve = function(cashflow, spot_rate){
+  endTime = cashflow[nrow(cashflow), 1]
+  
+  rate_cont = approxfun(unlist(spot_rate[,1]), unlist(spot_rate[,2]))
+  bond_price = sapply(seq(0, 50), function(x) exp(-integrate(rate_cont, 0, x)$val))
+  bond_price_cont = approxfun(seq(0, 50), bond_price)
+  integrand = approxfun(unlist(cashflow[,1]),unlist(cashflow[,2]) * bond_price_cont(unlist(cashflow[,1])))
+  integrate(integrand, 0, endTime)$val
+}
+
+reserve(cashflow_grace_0_markov, spot_rate)
+reserve(cashflow_grace_0.25_markov, spot_rate)
+reserve(cashflow_grace_0.5_markov, spot_rate)
+
+reserve(cashflow_grace_0_semiMarkov, spot_rate)
+reserve(cashflow_grace_0.25_semiMarkov, spot_rate)
+reserve(cashflow_grace_0.5_semiMarkov, spot_rate)
+
+DV01 = function(cashFlow, spotRate, epsilon){
+  spot_rate_DV01<-spot_rate
+  spot_rate_DV01$rate<-spot_rate$rate+epsilon
+  
+  trueReserve = reserve(cashFlow, spot_rate)
+  oneBasisPointReserve = reserve(cashFlow, spot_rate_DV01)
+  
+  DV01 = -(trueReserve-oneBasisPointReserve)/epsilon
+  AD = DV01 / trueReserve
+  
+  return(c(DV01, AD))
+}
+
+DV01(cashflow_grace_0_markov, spot_rate, 0.000000001)
+
+
+
 
