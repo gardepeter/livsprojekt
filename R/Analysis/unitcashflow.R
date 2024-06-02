@@ -117,20 +117,30 @@ cashflow_20 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_20
                          col_names = FALSE)
 cashflow_52 <- read_table("data/output/cashflowsDifferentStepAmounts/cashflow_52.csv", 
                          col_names = FALSE)
+
+cashflow_2$X1 = cashflow_2$X1 + 20
+cashflow_5$X1 = cashflow_5$X1  + 20
+cashflow_10$X1 = cashflow_10$X1 + 20
+cashflow_15$X1 = cashflow_15$X1 + 20
+cashflow_20$X1 = cashflow_20$X1 + 20
+cashflow_52$X1 = cashflow_52$X1 + 20
+
 ggplot() + 
-  geom_line(data = cashflow_2, aes(x = X1, y = X2, color = factor('2', levels = c('2', '5', '10', '15', '20', '52')))) + 
-  geom_line(data = cashflow_5, aes(x = X1, y = X2, color = factor('5', levels = c('2', '5', '10', '15', '20', '52')))) + 
-  geom_line(data = cashflow_10, aes(x = X1, y = X2, color = factor('10', levels = c('2', '5', '10', '15', '20', '52')))) + 
-  geom_line(data = cashflow_15, aes(x = X1, y = X2, color = factor('15', levels = c('2', '5', '10', '15', '20', '52')))) + 
-  geom_line(data = cashflow_20, aes(x = X1, y = X2, color = factor('20', levels = c('2', '5', '10', '15', '20', '52')))) + 
-  geom_line(data = cashflow_52, aes(x = X1, y = X2, color = factor('52', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_step(data = cashflow_2, aes(x = X1, y = X2, color = factor('2', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_step(data = cashflow_5, aes(x = X1, y = X2, color = factor('5', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_step(data = cashflow_10, aes(x = X1, y = X2, color = factor('10', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_step(data = cashflow_15, aes(x = X1, y = X2, color = factor('15', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_step(data = cashflow_20, aes(x = X1, y = X2, color = factor('20', levels = c('2', '5', '10', '15', '20', '52')))) + 
+  geom_step(data = cashflow_52, aes(x = X1, y = X2, color = factor('52', levels = c('2', '5', '10', '15', '20', '52')))) + 
   scale_color_manual(values = c('2' = 'red', 
                                 '5' = 'orange', 
                                 '10' = 'green', 
-                                '15' = 'yellow', 
-                                '20' = 'pink', 
+                                '15' = 'brown', 
+                                '20' = 'purple', 
                                 '52' = 'blue')) +
-  labs(x = "Time",
-       y = "Cash flow",
-       color = "Stepamount per timeunit")
+  
+  xlim(20, 30) +
+  labs(x = "Age",
+       y = "Unit cash flow",
+       color = "Steps per timeunit")
 
