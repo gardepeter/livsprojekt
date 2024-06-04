@@ -1,7 +1,7 @@
 #options(scipen = 99)
 library(tidyverse)
 
-Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
+Rcpp::sourceCpp("logic/SemiMarkov.cpp")
 
 ########## UTILITIES ##################
 f = function(matrix, index, amount){
@@ -20,7 +20,7 @@ stepAmountPerTimeUnit = 12
 startIncrement = 0 * stepAmountPerTimeUnit
 startDuration = startIncrement / stepAmountPerTimeUnit
 
-RK1(startTime, startDuration, endTime, stepAmountPerTimeUnit, age)
+semiMarkovTransitionProbabilities(startTime, startDuration, endTime, stepAmountPerTimeUnit, age)
 
 p00 = readr::read_csv("p00.csv", col_names = F)
 p01 = readr::read_csv("p01.csv", col_names = F)
@@ -53,8 +53,8 @@ startIncrement = c(0, 1) * stepAmountPerTimeUnit
 karensPeriod = 1/4
 startDuration = startIncrement / stepAmountPerTimeUnit
 
-cashflow_0 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration[1], endTime, stepAmountPerTimeUnit, age, karensPeriod, 1, 1)
-cashflow_1 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration[2], endTime, stepAmountPerTimeUnit, age, karensPeriod,  1, 1)
+cashflow_0 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration[1], endTime, stepAmountPerTimeUnit, age, karensPeriod, 1, 1)
+cashflow_1 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration[2], endTime, stepAmountPerTimeUnit, age, karensPeriod,  1, 1)
 
 plot_pre = tibble(age = cashflow_0[,1] + age, cashflow_0 = cashflow_0[,2], cashflow_1 = cashflow_1[, 2]) 
 #write.csv(plot_pre, "unitCashflows.csv", row.names = F)
