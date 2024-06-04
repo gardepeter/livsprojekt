@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h>
-#include "SemiMarkovIntensities.hpp"
+#include "hpp/SemiMarkovIntensities.hpp"
 #include <RcppThread.h>
 
 const int START_PARALLEL_PROC = 100;
@@ -148,7 +148,22 @@ void RK1StepMemomorySaving(arma::sp_mat& probabilities, int iteration, double st
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
-arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
+int semiMarkovTransitionProbabilities(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age) {
+  if( endTime <= startTime ||  stepAmountPerTimeUnit <= 1 || isNotMultipla(startDuration, (double)stepAmountPerTimeUnit)){
+    return -1;
+  }
+  loadCsvFile();
+  
+  arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
+  
+  saveCube(probabilities, states);
+  return 0;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppThread)]]
+// [[Rcpp::export]]
+arma::mat semiMarkovDisabilityUnitBenefitCashflow(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
   if( endTime <= startTime ||  stepAmountPerTimeUnit <= 1 || isNotMultipla(startDuration, (double)stepAmountPerTimeUnit)){
     return arma::mat(1, 1);
   }
@@ -195,19 +210,3 @@ arma::mat RK1_unitCashflowDisabilityWithKarens(double startTime, double startDur
   
   return cashflow;
 }
-
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(RcppThread)]]
-// [[Rcpp::export]]
-int RK1(double startTime, double startDuration, double endTime, int stepAmountPerTimeUnit, double age) {
-  if( endTime <= startTime ||  stepAmountPerTimeUnit <= 1 || isNotMultipla(startDuration, (double)stepAmountPerTimeUnit)){
-    return -1;
-  }
-  loadCsvFile();
-  
-  arma::field<arma::sp_mat> probabilities = RK1_Cpp(startTime, startDuration, endTime, stepAmountPerTimeUnit, age);
-  
-  saveCube(probabilities, states);
-  return 0;
-}
-

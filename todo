@@ -1,22 +1,15 @@
-spg:
-  Forward rate (meget høj) vs spot rate (normal)
-  skal vi lave flere analyser?
-  dv01 ?
-  Analyse af poisson regression?
-  
-  
-  
-  
 Todo (Initilized / In progress / Done): 
     i) Kerne for kolmogorov (ingen varighed) - done 
-        1) Udvidelse så csv int. works. - initilized 
+        1) Udvidelse så csv int. works. - Done
    ii) Kerne for kolmogorov (varighed) - Done 
         1) Eulers Metoden - Done 
         2) Trapez Metoden - Done 
   iii) Plot sandsynligheder ingen varigheder - Done 
-        1) Plot sandsynligheder varigheder, chosen durations - initilized
-   iv) Beregn endeligt cash flow (20 årig) and plot - initilized
+        1) Plot sandsynligheder varigheder, chosen durations - Done
+   iv) Beregn endeligt cash flow (20 årig) and plot - Done
     v) Fitning af poisson GLM (markov int.) - Done 
-   vi) DV01 - In progress 
-  vii) Beregn reserver både markov og semi markov - In progress
+   vi) DV01 - Done
+  vii) Beregn reserver både markov og semi markov - Done
  viii) Agg. markov connection to markov (micro states) - Done
+    x) Impl. agg. markov - In progress
+   xi) Make analysis in regard to agg. markov (cash flow and run times) - Initilized

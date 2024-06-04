@@ -1,5 +1,5 @@
 #include "RcppArmadillo.h"
-#include "AggregateMarkovIntensities.hpp"
+#include "hpp/AggregateMarkovIntensities.hpp"
 #include <iostream>
 #include <cmath>
 #include <algorithm>
@@ -95,10 +95,28 @@ arma::mat testProdInt(double s, double t, double age){
   return prodIntegralSolver(s, t, age, 12, 5, beta, eta);
 }
 
+
+//FINAL EXPOSED FUNCTIONS TO R
+
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::export]]
-arma::mat cashflowAggregateMarkov(double startTime, 
+double AggregateMarkovTransitionProbabilities(double startTime, 
+                                                       double startDuration, 
+                                                       double startAge,
+                                                       double endTime,
+                                                       int stepAmountPerTimeUnit,
+                                                       double gracePeriod,
+                                                       int microStateAmount,
+                                                       int i,
+                                                       int j){
+  return 0.;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppThread)]]
+// [[Rcpp::export]]
+arma::mat AggregateMarkovDisabilityUnitBenefitCashflow(double startTime, 
                                   double startDuration, 
                                   double startAge,
                                   double endTime,

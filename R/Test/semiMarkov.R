@@ -3,7 +3,7 @@
 #*#***************************************************
 library(tidyverse)
 options(scipen =99)
-Rcpp::sourceCpp("logic/RK1SemiMarkov.cpp")
+Rcpp::sourceCpp("logic/SemiMarkov.cpp")
 
 age = 20
 startTime = 0.0
@@ -24,40 +24,40 @@ startDuration = 0.
 # integrate(integrand, 0, 49.9)$val
 
 benchmark0 = rbenchmark::benchmark(
-  "cashflow_2" = {cashflow_2 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 2, age, karensPeriod, 0, 1)},
-  "cashflow_4" = {cashflow_4 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 4, age, karensPeriod, 0, 1)},
-  "cashflow_8" = {cashflow_8 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 8, age, karensPeriod, 0, 1)},
-  "cashflow_16" = {cashflow_16 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 16, age, karensPeriod, 0, 1)},
-  "cashflow_32" = {cashflow_16 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 32, age, karensPeriod, 0, 1)},
-  "cashflow_64" = {cashflow_16 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 64, age, karensPeriod, 0, 1)},
+  "cashflow_2" = {cashflow_2 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 2, age, karensPeriod, 0, 1)},
+  "cashflow_4" = {cashflow_4 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 4, age, karensPeriod, 0, 1)},
+  "cashflow_8" = {cashflow_8 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 8, age, karensPeriod, 0, 1)},
+  "cashflow_16" = {cashflow_16 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 16, age, karensPeriod, 0, 1)},
+  "cashflow_32" = {cashflow_16 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 32, age, karensPeriod, 0, 1)},
+  "cashflow_64" = {cashflow_16 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 64, age, karensPeriod, 0, 1)},
   replications = 1
   )
 
 benchmark1 = rbenchmark::benchmark(
-  "cashflow_2" = {cashflow_2 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 2, age, karensPeriod, 1, 1)},
-  "cashflow_3" = {cashflow_3 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 3, age, karensPeriod, 1, 1)},
-  "cashflow_4" = {cashflow_4 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 4, age, karensPeriod, 1, 1)},
-  "cashflow_5" = {cashflow_5 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 5, age, karensPeriod, 1, 1)},
-  "cashflow_6" = {cashflow_6 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 6, age, karensPeriod, 1, 1)},
-  "cashflow_7" = {cashflow_7 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 7, age, karensPeriod, 1, 1)},
-  "cashflow_8" = {cashflow_8 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 8, age, karensPeriod, 1, 1)},
-  "cashflow_9" = {cashflow_9 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 9, age, karensPeriod, 1, 1)},
-  "cashflow_10" = {cashflow_10 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 10, age, karensPeriod, 1, 1)},
-  "cashflow_11" = {cashflow_11 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 11, age, karensPeriod, 1, 1)},
-  "cashflow_12" = {cashflow_12 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 12, age, karensPeriod, 1, 1)},
-  "cashflow_13" = {cashflow_13 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 13, age, karensPeriod, 1, 1)},
-  "cashflow_14" = {cashflow_14 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 14, age, karensPeriod, 1, 1)},
-  "cashflow_15" = {cashflow_15 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 15, age, karensPeriod, 1, 1)},
-  "cashflow_16" = {cashflow_16 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 16, age, karensPeriod, 1, 1)},
-  "cashflow_17" = {cashflow_17 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 17, age, karensPeriod, 1, 1)},
-  "cashflow_18" = {cashflow_18 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 18, age, karensPeriod, 1, 1)},
-  "cashflow_19" = {cashflow_19 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 19, age, karensPeriod, 1, 1)},
-  "cashflow_20" = {cashflow_20 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 20, age, karensPeriod, 1, 1)},
+  "cashflow_2" = {cashflow_2 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 2, age, karensPeriod, 1, 1)},
+  "cashflow_3" = {cashflow_3 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 3, age, karensPeriod, 1, 1)},
+  "cashflow_4" = {cashflow_4 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 4, age, karensPeriod, 1, 1)},
+  "cashflow_5" = {cashflow_5 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 5, age, karensPeriod, 1, 1)},
+  "cashflow_6" = {cashflow_6 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 6, age, karensPeriod, 1, 1)},
+  "cashflow_7" = {cashflow_7 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 7, age, karensPeriod, 1, 1)},
+  "cashflow_8" = {cashflow_8 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 8, age, karensPeriod, 1, 1)},
+  "cashflow_9" = {cashflow_9 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 9, age, karensPeriod, 1, 1)},
+  "cashflow_10" = {cashflow_10 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 10, age, karensPeriod, 1, 1)},
+  "cashflow_11" = {cashflow_11 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 11, age, karensPeriod, 1, 1)},
+  "cashflow_12" = {cashflow_12 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 12, age, karensPeriod, 1, 1)},
+  "cashflow_13" = {cashflow_13 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 13, age, karensPeriod, 1, 1)},
+  "cashflow_14" = {cashflow_14 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 14, age, karensPeriod, 1, 1)},
+  "cashflow_15" = {cashflow_15 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 15, age, karensPeriod, 1, 1)},
+  "cashflow_16" = {cashflow_16 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 16, age, karensPeriod, 1, 1)},
+  "cashflow_17" = {cashflow_17 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 17, age, karensPeriod, 1, 1)},
+  "cashflow_18" = {cashflow_18 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 18, age, karensPeriod, 1, 1)},
+  "cashflow_19" = {cashflow_19 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 19, age, karensPeriod, 1, 1)},
+  "cashflow_20" = {cashflow_20 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 20, age, karensPeriod, 1, 1)},
   replications = 1
 )
 
 benchmark2 = rbenchmark::benchmark(
-  "cashflow_52" = {cashflow_52 = RK1_unitCashflowDisabilityWithKarens(startTime, startDuration, endTime, 52, age, karensPeriod, 1, 1)},
+  "cashflow_52" = {cashflow_52 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 52, age, karensPeriod, 1, 1)},
   replications = 1
 )
 
