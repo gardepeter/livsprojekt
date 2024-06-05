@@ -1,6 +1,23 @@
 Rcpp::sourceCpp("logic/SemiMarkov.cpp")
 Rcpp::sourceCpp("logic/Markov.cpp")
 
+################### RESERVES ################################
+spot_rate <- read_delim("data/FSARiskFreeCurve.csv", 
+                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
+spot_rate<-na.omit(spot_rate)
+spot_rate<-mutate(spot_rate, rate=rate/100)
+
+reserve = function(cashflow, spot_rate){
+  endTime = cashflow[nrow(cashflow), 1]
+  
+  rate_cont = approxfun(unlist(spot_rate[,1]), unlist(spot_rate[,2]))
+  bond_price = sapply(seq(0, 50), function(x) exp(-integrate(rate_cont, 0, x)$val))
+  bond_price_cont = approxfun(seq(0, 50), bond_price)
+  integrand = approxfun(unlist(cashflow[,1]),unlist(cashflow[,2]) * bond_price_cont(unlist(cashflow[,1])))
+  integrate(integrand, 0, endTime)$val
+}
+
+
 ############################## RUN TIMES ###################################
 
 age = 20
@@ -36,6 +53,23 @@ markov = rbenchmark::benchmark(
 markov_res = cbind(markov[,1], markov[,3] / reps)
 write.table(markov_res, "markov_res.csv", row.names = F, col.names = F, sep = ",")
 
+library(tidyverse)
+
+cashflows = tibble(
+  cashflow_2 = reserve(cashflow_2, spot_rate),
+  cashflow_4 = reserve(cashflow_4, spot_rate),
+  cashflow_8 = reserve(cashflow_8, spot_rate),
+  cashflow_12 = reserve(cashflow_12, spot_rate),
+  cashflow_20 = reserve(cashflow_20, spot_rate),
+  cashflow_52 = reserve(cashflow_52, spot_rate),
+  
+  cashflow_2_markov =  reserve(cashflow_2_markov, spot_rate),
+  cashflow_4_markov = reserve(cashflow_4_markov, spot_rate),
+  cashflow_8_markov = reserve(cashflow_8_markov, spot_rate),
+  cashflow_12_markov = reserve(cashflow_12_markov, spot_rate),
+  cashflow_20_markov = reserve(cashflow_20_markov, spot_rate),
+  cashflow_52_markov = reserve(cashflow_52_markov, spot_rate)
+)
 #################### RESERVES UNDER DIFFERING GRACE PERIODS ###################
 library(tidyverse)
 
@@ -89,22 +123,6 @@ ggplot(cashflowPlot, aes(x = time, y = CashFlow, color = GracePeriod)) +
   geom_line() +
   facet_wrap(~model) +
   labs(x="Age (years)", y="Unit cash flow", color="Grace period (years)")
-
-
-spot_rate <- read_delim("data/FSARiskFreeCurve.csv", 
-                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
-spot_rate<-na.omit(spot_rate)
-spot_rate<-mutate(spot_rate, rate=rate/100)
-
-reserve = function(cashflow, spot_rate){
-  endTime = cashflow[nrow(cashflow), 1]
-  
-  rate_cont = approxfun(unlist(spot_rate[,1]), unlist(spot_rate[,2]))
-  bond_price = sapply(seq(0, 50), function(x) exp(-integrate(rate_cont, 0, x)$val))
-  bond_price_cont = approxfun(seq(0, 50), bond_price)
-  integrand = approxfun(unlist(cashflow[,1]),unlist(cashflow[,2]) * bond_price_cont(unlist(cashflow[,1])))
-  integrate(integrand, 0, endTime)$val
-}
 
 reserve(cashflow_grace_0_markov, spot_rate)
 reserve(cashflow_grace_0.25_markov, spot_rate)
