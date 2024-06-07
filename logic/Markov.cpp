@@ -56,23 +56,18 @@ arma::mat RK1Step(arma::mat& probabilities, double s, double stepLength, int sta
   return probabilities + stepLength * delta;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::export]]
-arma::mat markovTransitionProbabilities(int startTime, int endTime, int stepAmountPerTimeUnit, double age) {
+arma::mat markovTransitionProbabilities(int startTime, int endTime, int stepAmountPerTimeUnit, double age, bool forward){
   loadCsvFile();
-  if(endTime <= startTime || stepAmountPerTimeUnit <= 1){
-    return arma::mat();
-  }
-  
+
   double stepLength = 1. / (double)stepAmountPerTimeUnit;
-  int stepAmount = (endTime - startTime) * stepAmountPerTimeUnit;
+  int stepAmount = std::abs(endTime - startTime) * stepAmountPerTimeUnit;
   
   arma::mat probabilities = arma::eye(states, states);
   arma::mat probabilitySaved(stepAmount, states * states);
   probabilitySaved.row(0) = matrixToVector(probabilities, states);
   
   for(int n = 1; n < stepAmount; n++){
-    arma::mat tempMatrix = RK1Step(probabilities, n * stepLength, stepLength, states, age);
+    arma::mat tempMatrix = RK1Step(probabilities, (forward ? 1. : -1.) * (n - 1) * stepLength, stepLength, states, age + (forward ? 0. : (double)startTime));
     for(int i = 0; i < states; i++){
       probabilities.row(i) = tempMatrix.row(i);
     }
@@ -84,15 +79,28 @@ arma::mat markovTransitionProbabilities(int startTime, int endTime, int stepAmou
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
+arma::mat markovTransitionProbabilities(int startTime, int endTime, int stepAmountPerTimeUnit, double age) {
+  if(endTime <= startTime || stepAmountPerTimeUnit <= 1){
+    return arma::mat();
+  }
+  
+  return markovTransitionProbabilities(startTime, endTime, stepAmountPerTimeUnit, age, true);
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
 arma::mat markovDisabilityUnitBenefitCashflow(int startTime, double startDuration, int endTime, int stepAmountPerTimeUnit, double age, double gracePeriod, int i, int j) {
   loadCsvFile();
   arma::mat probabilities = markovTransitionProbabilities(startTime, endTime, stepAmountPerTimeUnit, age);
-
+  
+  
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
   double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
   int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1; 
 
+  arma::mat probabilitiesBackward = markovTransitionProbabilities(startTime, startTime - gracePeriodSteps, stepAmountPerTimeUnit, age, false);
+  
   arma::mat cashflow(cashflowSteps, 2);
   for(int n = 0; n < cashflowSteps; n++ ){
     cashflow(n, 0) = n * stepAmountLength;
@@ -108,7 +116,9 @@ arma::mat markovDisabilityUnitBenefitCashflow(int startTime, double startDuratio
     if(stepsFromZeroToStartDuration + n < gracePeriodSteps ){
       continue;
     }
-    cashflow(n, 1) = probabilities(n, states * i + j);
+    cashflow(n, 1) = probabilities(std::max(n, startTime), states * i + j)
+      * (n < startTime ? probabilitiesBackward( n, states * j + j) : 1.)
+      * probabilities(n, states * j + j);
   }
 
   return cashflow;
