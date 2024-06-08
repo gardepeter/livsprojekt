@@ -81,4 +81,16 @@ double mu(int i, int j, double x, double age){
   throw std::runtime_error("ERROR: mu(.) out of bounds (livsprojekt.logic.MarkovIntensities)");
 }
 
+arma::mat markovIntensityMatrix(double x, double age){
+  arma::mat res(states, states);
+  for(int i = 0; i < states - 1; i++){
+    for(int j = 0; j < states; j++){
+      if(i == j) continue;
+      res(i, j) = mu(i, j, x, age);
+    }
+  }
+  
+  return res - arma::diagmat(arma::sum(res, 1));
+}
+
 #endif

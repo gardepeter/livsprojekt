@@ -32,6 +32,18 @@ double transformationKolmogorov(arma::mat& probabilities, int i, int j, double s
           + sumOfIntensitiesWeightedByProbability(probabilities, i, j, s, age);
 }
 
+arma::mat prodIntegralSolver(double s, double t, double age, int stepAmount, int states){
+  double stepLength = (t - s) / (double)stepAmount;
+  
+  arma::mat res = arma::eye(states, states);
+  arma::mat k( states, states );
+  for(int iteration = 1; iteration < stepAmount + 1; iteration++){
+    res += res * markovIntensityMatrix(age, s + stepLength * (double)(iteration - 1)) * stepLength;
+  }
+  
+  return res;
+}
+
 arma::rowvec matrixToVector(arma::mat& matrix, int states){
   arma::rowvec res(states * states);
   
@@ -93,13 +105,10 @@ arma::mat markovDisabilityUnitBenefitCashflow(int startTime, double startDuratio
   loadCsvFile();
   arma::mat probabilities = markovTransitionProbabilities(startTime, endTime, stepAmountPerTimeUnit, age);
   
-  
   int cashflowSteps = stepAmountPerTimeUnit * (endTime - startTime);
   double stepAmountLength = 1 / (double)stepAmountPerTimeUnit;
   int stepsFromZeroToStartDuration = (int)round(startDuration * stepAmountPerTimeUnit);
   int gracePeriodSteps = (int)round((double)stepAmountPerTimeUnit * gracePeriod) + 1; 
-
-  arma::mat probabilitiesBackward = markovTransitionProbabilities(startTime, startTime - gracePeriodSteps, stepAmountPerTimeUnit, age, false);
   
   arma::mat cashflow(cashflowSteps, 2);
   for(int n = 0; n < cashflowSteps; n++ ){
@@ -116,9 +125,12 @@ arma::mat markovDisabilityUnitBenefitCashflow(int startTime, double startDuratio
     if(stepsFromZeroToStartDuration + n < gracePeriodSteps ){
       continue;
     }
-    cashflow(n, 1) = probabilities(std::max(n, startTime), states * i + j)
-      * (n < startTime ? probabilitiesBackward( n, states * j + j) : 1.)
-      * probabilities(n, states * j + j);
+    
+    double max = (stepAmountLength * ((double)n) - gracePeriod) > startTime ? (stepAmountLength * ((double)n) - gracePeriod) : startTime;
+    arma::mat probabilityFactor =  prodIntegralSolver(max, stepAmountLength * ((double)n), age + max, 10 * (int)round(stepAmountLength * ((double)n) - max) + 1, states);
+    
+    cashflow(n, 1) = probabilities((int)( (max - startTime) * stepAmountPerTimeUnit), states * i + j)
+      *  probabilityFactor(i, j);
   }
 
   return cashflow;

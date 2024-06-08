@@ -14,6 +14,6 @@ stepAmountPerTimeUnit = 12
 #                              "p_20", "p_21", "p_22")
 
 system.time({
-  cashflow_markov = markovDisabilityUnitBenefitCashflow(start, startDuration, termination, stepAmountPerTimeUnit, age, gracePeriod, 0, 1)
+  cashflow_markov = markovDisabilityUnitBenefitCashflow(start, startDuration, termination, stepAmountPerTimeUnit, age, gracePeriod, 1, 1)
 })
 # write.csv(cashflow, "unitDisabilityBenefitCashflow_3MonthGracePeriod_20YearsOldActive2024_markov.csv", row.names=FALSE)
