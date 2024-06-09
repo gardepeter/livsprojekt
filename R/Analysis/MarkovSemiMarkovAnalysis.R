@@ -29,11 +29,11 @@ startDuration = 0.
 reps = 5
 
 semi = rbenchmark::benchmark(
-  "cashflow_2" = {cashflow_2 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 2, age, gracePeriod, 0, 1)},
-  "cashflow_4" = {cashflow_4 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 4, age, gracePeriod, 0, 1)},
-  "cashflow_8" = {cashflow_8 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 8, age, gracePeriod, 0, 1)},
-  "cashflow_12" = {cashflow_12 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 12, age, gracePeriod, 0, 1)},
-  "cashflow_20" = {cashflow_20 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 20, age, gracePeriod, 0, 1)},
+  "cashflow_2" = {cashflow_2 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 4, age, gracePeriod, 0, 1)},
+  "cashflow_4" = {cashflow_4 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 8, age, gracePeriod, 0, 1)},
+  "cashflow_8" = {cashflow_8 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 12, age, gracePeriod, 0, 1)},
+  "cashflow_12" = {cashflow_12 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 24, age, gracePeriod, 0, 1)},
+  "cashflow_20" = {cashflow_20 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 36, age, gracePeriod, 0, 1)},
   "cashflow_52" = {cashflow_52 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 52, age, gracePeriod, 0, 1)},
   replications = reps
 )
@@ -41,11 +41,11 @@ semiMarkov_res = cbind(semi[,1], semi[,3] / reps)
 write.table(semiMarkov_res, "semiMarkov_res.csv", row.names = F, col.names = F, sep = ",")
 
 markov = rbenchmark::benchmark(
-  "cashflow_2_markov" = {cashflow_2_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 2, age, gracePeriod, 0, 1)},
-  "cashflow_4_markov" = {cashflow_4_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 4, age, gracePeriod, 0, 1)},
-  "cashflow_8_markov" = {cashflow_8_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 8, age, gracePeriod, 0, 1)},
-  "cashflow_12_markov" = {cashflow_12_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 12, age, gracePeriod, 0, 1)},
-  "cashflow_20_markov" = {cashflow_20_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 20, age, gracePeriod, 0, 1)},
+  "cashflow_2_markov" = {cashflow_2_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 4, age, gracePeriod, 0, 1)},
+  "cashflow_4_markov" = {cashflow_4_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 8, age, gracePeriod, 0, 1)},
+  "cashflow_8_markov" = {cashflow_8_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 12, age, gracePeriod, 0, 1)},
+  "cashflow_12_markov" = {cashflow_12_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 24, age, gracePeriod, 0, 1)},
+  "cashflow_20_markov" = {cashflow_20_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 36, age, gracePeriod, 0, 1)},
   "cashflow_52_markov" = {cashflow_52_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, 52, age, gracePeriod, 0, 1)},
   replications = reps
 )
@@ -76,7 +76,7 @@ library(tidyverse)
 age = 20
 startTime = 0.0
 endTime = 47
-stepAmountPerTimeUnit = 12
+stepAmountPerTimeUnit = 24
 startDuration = 0.
 
 cashflow_grace_0_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration, endTime, stepAmountPerTimeUnit, age, 0/4, 0, 1)

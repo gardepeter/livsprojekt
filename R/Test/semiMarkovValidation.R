@@ -2,6 +2,7 @@
 library(tidyverse)
 
 Rcpp::sourceCpp("logic/SemiMarkov.cpp")
+Rcpp::sourceCpp("logic/Markov.cpp")
 
 ########## UTILITIES ##################
 f = function(matrix, index, amount){
@@ -69,27 +70,31 @@ sum(abs(diagonal_vector_10 + diagonal_vector_11 + diagonal_vector_12 - 1) > tole
 age = 40
 startTime = 0.0
 endTime = 25.0
-stepAmountPerTimeUnit = 12
+stepAmountPerTimeUnit = 24
 startIncrement = c(0, 1) * stepAmountPerTimeUnit
 karensPeriod = 1/4
 startDuration = startIncrement / stepAmountPerTimeUnit
 
 cashflow_0 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration[1], endTime, stepAmountPerTimeUnit, age, karensPeriod, 1, 1)
 cashflow_1 = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDuration[2], endTime, stepAmountPerTimeUnit, age, karensPeriod,  1, 1)
+cashflow_0_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration[1], endTime, stepAmountPerTimeUnit, age, karensPeriod, 1, 1)
+cashflow_1_markov = markovDisabilityUnitBenefitCashflow(startTime, startDuration[2], endTime, stepAmountPerTimeUnit, age, karensPeriod,  1, 1)
 
-plot_pre = tibble(age = cashflow_0[,1] + age, cashflow_0 = cashflow_0[,2], cashflow_1 = cashflow_1[, 2]) 
+plot_pre = tibble(age = cashflow_0[,1] + age, cashflow_0 = cashflow_0[,2], cashflow_1 = cashflow_1[, 2], model = "semi-Markov") 
+plot_pre_markov = tibble(age = cashflow_0_markov[,1] + age, cashflow_0 = cashflow_0_markov[,2], cashflow_1 = cashflow_1_markov[, 2], model = "Markov") 
 #write.csv(plot_pre, "unitCashflows.csv", row.names = F)
 
-plot = plot_pre %>%
-  pivot_longer(!age, values_to = "value", names_to = "cashflow")
+plot = rbind(plot_pre, plot_pre_markov) %>%
+  pivot_longer(!c(age, model), values_to = "value", names_to = "cashflow")
 
 new_labels <- c("cashflow_0" = "Start duration zero", "cashflow_1" = "Start duration one")
 
-ggplot(plot, aes(age, value))+
+ggplot(plot, aes(age, value, color = model))+
   geom_line() + 
   scale_y_continuous(breaks = seq(0, 1.2, length.out = 7), limits = c(0, 1.2)) +
   facet_grid(~cashflow, labeller = labeller(cashflow = new_labels))+
-  theme(axis.title.y=element_blank())
+  theme(axis.title.y=element_blank()) +
+  labs(color = "")
 
 ################ RESERVES FOR VALIDATION ####################
 age = 40
