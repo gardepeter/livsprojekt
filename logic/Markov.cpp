@@ -33,6 +33,9 @@ double transformationKolmogorov(arma::mat& probabilities, int i, int j, double s
 }
 
 arma::mat prodIntegralSolver(double s, double t, double age, int stepAmount, int states){
+  if(std::abs(t - s) < EPSILON){
+    return arma::eye(states, states);
+  }
   double stepLength = (t - s) / (double)stepAmount;
   
   arma::mat res = arma::eye(states, states);
@@ -127,10 +130,10 @@ arma::mat markovDisabilityUnitBenefitCashflow(int startTime, double startDuratio
     }
     
     double max = (stepAmountLength * ((double)n) - gracePeriod) > startTime ? (stepAmountLength * ((double)n) - gracePeriod) : startTime;
-    arma::mat probabilityFactor =  prodIntegralSolver(max, stepAmountLength * ((double)n), age + max, 10 * (int)round(stepAmountLength * ((double)n) - max) + 1, states);
+    arma::mat probabilityFactor =  prodIntegralSolver(max, stepAmountLength * ((double)n), age, (int)round(10 * (stepAmountLength * ((double)n) - max) ) + 1, states);
     
     cashflow(n, 1) = probabilities((int)( (max - startTime) * stepAmountPerTimeUnit), states * i + j)
-      *  probabilityFactor(i, j);
+      *  probabilityFactor(j, j);
   }
 
   return cashflow;
