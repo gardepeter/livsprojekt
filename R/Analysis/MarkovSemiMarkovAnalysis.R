@@ -7,14 +7,14 @@ spot_rate <- read_delim("data/FSARiskFreeCurve.csv",
 spot_rate<-na.omit(spot_rate)
 spot_rate<-mutate(spot_rate, rate=rate/100)
 
-reserve = function(cashflow, spot_rate){
+reserve = function(cashflow, spot_rate, subdivisions=100, rel.tol=.Machine$double.eps^0.25){
   endTime = cashflow[nrow(cashflow), 1]
   
   rate_cont = approxfun(unlist(spot_rate[,1]), unlist(spot_rate[,2]))
   bond_price = sapply(seq(0, 50), function(x) exp(-integrate(rate_cont, 0, x)$val))
   bond_price_cont = approxfun(seq(0, 50), bond_price)
   integrand = approxfun(unlist(cashflow[,1]),unlist(cashflow[,2]) * bond_price_cont(unlist(cashflow[,1])))
-  integrate(integrand, 0, endTime)$val
+  integrate(integrand, 0, endTime, subdivisions = subdivisions, rel.tol = rel.tol)$val
 }
 
 
@@ -187,6 +187,55 @@ DV01 = function(cashFlow, spotRate, epsilon){
 
 DV01(cashflow_grace_0.5_semiMarkov, spot_rate, 0.000000001)
 
+####################### DIFFERING START DURATIONS ###########################
+age = 30
+startTime = 0.0
+endTime = 37
+gracePeriod = 1/4
+stepAmountPerTimeUnit = 24
+startDurations = c(0, 0.5, 1, 1.5, 2, 2.5)
 
+cashflow = list()
+for(i in 1:length(startDurations) ){
+  cashflow[[i]] = list(
+    markov =  markovDisabilityUnitBenefitCashflow(startTime, startDurations[i], endTime, stepAmountPerTimeUnit, age, gracePeriod, 1, 1),
+    semiMarkov = semiMarkovDisabilityUnitBenefitCashflow(startTime, startDurations[i], endTime, stepAmountPerTimeUnit, age, gracePeriod, 1, 1)
+  )
+}
 
+lapply(cashflow, function(x) list(markov = reserve(x$markov, spot_rate, 5000, .Machine$double.eps^.05),
+                                  semiMarkov = reserve(x$semiMarkov, spot_rate) ))
+plot_markov = cbind(cashflow[[1]]$markov,
+             cashflow[[2]]$markov[,2],
+             cashflow[[3]]$markov[,2],
+             cashflow[[4]]$markov[,2],
+             cashflow[[5]]$markov[,2],
+             cashflow[[6]]$markov[,2])
+colnames(plot_markov) = c("age", paste0("Start duration ", startDurations))
+
+plot_semi = cbind(cashflow[[1]]$semiMarkov,
+             cashflow[[2]]$semiMarkov[,2],
+             cashflow[[3]]$semiMarkov[,2],
+             cashflow[[4]]$semiMarkov[,2],
+             cashflow[[5]]$semiMarkov[,2],
+             cashflow[[6]]$semiMarkov[,2])
+colnames(plot_semi) = c("age", paste0("Start duration ", startDurations))
+
+plot = rbind(
+  plot_markov %>%
+    as_tibble() %>%
+    pivot_longer(!age, names_to = "startDuration", values_to = "cashflow") %>%
+    mutate(model = "Markov"),
+  plot_semi %>%
+    as_tibble() %>%
+    pivot_longer(!age, names_to = "startDuration", values_to = "cashflow") %>%
+    mutate(model = "semi-Markov")
+) %>% mutate(age = age + 30)
+
+ggplot(plot, aes(age, cashflow, color = model)) +
+  geom_line() +
+  facet_wrap(~startDuration, ncol = 3) +
+  labs(x = "Age",
+       y = "Unit cash flow",
+       color = "Model")
 

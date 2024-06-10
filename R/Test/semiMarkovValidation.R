@@ -94,7 +94,7 @@ ggplot(plot, aes(age, value, color = model))+
   scale_y_continuous(breaks = seq(0, 1.2, length.out = 7), limits = c(0, 1.2)) +
   facet_grid(~cashflow, labeller = labeller(cashflow = new_labels))+
   theme(axis.title.y=element_blank()) +
-  labs(color = "")
+  labs(color = "Model")
 
 ################ RESERVES FOR VALIDATION ####################
 age = 40
