@@ -1,0 +1,1 @@
+Code base of the project, Implementation of a Semi-Markovian calculation core, in the UCPH course Projects in the Mathematics of Life Insurance, 2024. Written by Anna Sailegtim, Jens Fischer and Peter Garde.
