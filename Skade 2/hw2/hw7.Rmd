@@ -15,10 +15,8 @@ claims<-claims[,c(1,2)]
 colnames(claims)<-c("claim_size","deductible")
 claims<-mutate(claims,claim_size=claim_size/1000,deductible=deductible/1000)
 freq <- read_csv("frequency.csv")
-freq=freq%>%mutate(Age=log(Age+2),Brt=log(Brt),Dwt=log(Dwt),Value=log(Value),HP=log(HP))
-View(claims)
-view(freq)
-claims$claim_adjusted<-claims$claim_size - claims$deductible
+freq = freq%>%mutate(Age=log(Age+2),Brt=log(Brt),Dwt=log(Dwt),Value=log(Value),HP=log(HP))
+
 ```
 
 We have to change the data a little such that it our data will have an intercept and and hence we will expand the matrix such that each new column is a category for the categorial variable.
